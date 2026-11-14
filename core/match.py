@@ -103,7 +103,7 @@ def scanner_findings(market: str, domain: str, facts: FactSheet, scan: ScanResul
             return
         key = f"{market}|{domain}|scanner|{title}|{file}|{line}"
         out.append(Finding(
-            id=hashlib.sha1(key.encode()).hexdigest()[:10], market=market, domain=domain, severity=severity,
+            id=hashlib.sha1(key.encode(), usedforsecurity=False).hexdigest()[:10], market=market, domain=domain, severity=severity,
             title=title, why=why, evidence={"file": file, "line": line, "snippet": snippet}, rule=rule,
             fix_type=fix_type, fix_summary=fix, origin="scanner").model_dump())
 
@@ -209,7 +209,7 @@ def match_cell(market: str, domain: str, facts: FactSheet, scan: ScanResult) -> 
             continue                                         # already reported by a scanner
         key = f"{market}|{domain}|{d.title}|{d.evidence.file}|{d.evidence.line}|{d.evidence.missing_artifact}"
         cell["findings"].append(Finding(
-            id=hashlib.sha1(key.encode()).hexdigest()[:10], market=market, domain=domain,
+            id=hashlib.sha1(key.encode(), usedforsecurity=False).hexdigest()[:10], market=market, domain=domain,
             severity=d.severity, title=d.title.strip() or d.fix_summary.strip()[:90], why=d.why, evidence=d.evidence, rule=rule,
             fix_type=d.fix_type, fix_summary=d.fix_summary).model_dump())
     return cell
