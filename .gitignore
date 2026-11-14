@@ -1,0 +1,10 @@
+.env
+.venv/
+__pycache__/
+workdir/
+last_run.json
+.pytest_cache/
+last_scan.json
+last_fix.json
+last_report.html
+cache/

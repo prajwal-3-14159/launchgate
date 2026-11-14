@@ -1,0 +1,1080 @@
+{
+ "repo_url": "https://github.com/prajwal-3-14159/launchgate-demo-repo",
+ "markets": [
+  "JP",
+  "EU"
+ ],
+ "scan": {
+  "sandbox_id": "0c475159-36d0-4958-b93f-db39a86fa779",
+  "files": [
+   ".env.example",
+   "PRIVACY.md",
+   "README.md",
+   "analytics.py",
+   "app.py",
+   "config.py",
+   "crypto_utils.py",
+   "requirements.txt",
+   "signup.py"
+  ],
+  "secrets": [
+   {
+    "file": "config.py",
+    "line": 8,
+    "type": "Secret Keyword"
+   }
+  ],
+  "vulns": [
+   {
+    "package": "pyyaml",
+    "version": "5.3",
+    "vuln_id": "PYSEC-2020-96",
+    "fix_versions": [
+     "5.3.1"
+    ]
+   },
+   {
+    "package": "pyyaml",
+    "version": "5.3",
+    "vuln_id": "PYSEC-2021-142",
+    "fix_versions": [
+     "5.4"
+    ]
+   }
+  ],
+  "licences": [
+   {
+    "package": "Flask",
+    "version": "3.1.3",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "Jinja2",
+    "version": "3.1.6",
+    "licence": "BSD License"
+   },
+   {
+    "package": "MarkupSafe",
+    "version": "3.0.4",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "PyMuPDF",
+    "version": "1.25.5",
+    "licence": "Dual Licensed - GNU AFFERO GPL 3.0 or Artifex Commercial License"
+   },
+   {
+    "package": "PyYAML",
+    "version": "5.3",
+    "licence": "MIT License"
+   },
+   {
+    "package": "Werkzeug",
+    "version": "3.1.9",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "blinker",
+    "version": "1.9.0",
+    "licence": "MIT License"
+   },
+   {
+    "package": "certifi",
+    "version": "2026.10.23",
+    "licence": "Mozilla Public License 2.0 (MPL 2.0)"
+   },
+   {
+    "package": "cffi",
+    "version": "2.1.1",
+    "licence": "MIT-0"
+   },
+   {
+    "package": "charset-normalizer",
+    "version": "3.5.2",
+    "licence": "MIT"
+   },
+   {
+    "package": "click",
+    "version": "8.5.1",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "cryptography",
+    "version": "50.0.2",
+    "licence": "Apache-2.0 OR BSD-3-Clause"
+   },
+   {
+    "package": "idna",
+    "version": "3.20",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "itsdangerous",
+    "version": "2.2.0",
+    "licence": "BSD License"
+   },
+   {
+    "package": "pycparser",
+    "version": "3.12",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "requests",
+    "version": "2.33.0",
+    "licence": "Apache Software License"
+   },
+   {
+    "package": "urllib3",
+    "version": "2.8.0",
+    "licence": "MIT"
+   }
+  ],
+  "key_files": {
+   ".env.example": "METRICFLOW_WRITE_KEY=\n",
+   "PRIVACY.md": "# TripNote Privacy Policy\n\nLast updated: 1 October 2026\n\n## What we collect\n- Your email address, to create and secure your account.\n\n## How we use it\n- To sign you in and to send service notices.\n\n## Sharing\nWe do not share your personal data with third parties.\n\n## Contact\nprivacy@tripnote.example\n",
+   "README.md": "# TripNote\n\nTrip-planning web app (Flask). Hosted service; planned launch in Japan and the EU.\n\n**Proprietary and closed source. Copyright TripNote Inc. All rights reserved. Not licensed for redistribution.**\n\nThis repository is a deliberately flawed demo target for LaunchGate. The key in `config.py` is fake.\n\n    pip install -r requirements.txt\n    flask --app app run\n",
+   "requirements.txt": "Flask==3.1.3\nrequests==2.33.0\nPyYAML==5.3\nPyMuPDF==1.25.5\ncryptography==50.0.2\n",
+   "config.py": "\"\"\"Application settings for TripNote.\"\"\"\n\nAPP_NAME = \"TripNote\"\nDEBUG = False\n\n# Payments provider\nPAYMENTS_API_URL = \"https://payments.example.com/v1\"\nPAYMENTS_API_KEY = \"lg_demo_9f8a7c6b5d4e3f2a1b0c9d8e7f6a5b4c\"\n\nANALYTICS_ENDPOINT = \"https://api.us.metricflow-analytics.com/v2/track\"\nANALYTICS_WRITE_KEY_ENV = \"METRICFLOW_WRITE_KEY\"\n",
+   "analytics.py": "\"\"\"Product analytics. Events go to MetricFlow (hosted in the United States).\"\"\"\nimport os\n\nimport requests\n\nfrom config import ANALYTICS_ENDPOINT, ANALYTICS_WRITE_KEY_ENV\n\n\ndef track(event: str, user: dict) -> None:\n    payload = {\n        \"event\": event,\n        \"email\": user[\"email\"],\n        \"user_id\": user[\"id\"],\n        \"locale\": user.get(\"locale\", \"ja-JP\"),\n    }\n    requests.post(\n        ANALYTICS_ENDPOINT,\n        json=payload,\n        headers={\"Authorization\": os.environ.get(ANALYTICS_WRITE_KEY_ENV, \"\")},\n        timeout=5,\n    )\n",
+   "app.py": "\"\"\"TripNote web app.\"\"\"\nimport fitz  # PyMuPDF, used to export itineraries as PDF\nimport yaml\nfrom flask import Flask, jsonify, request\n\nimport config\nfrom signup import create_user\n\napp = Flask(config.APP_NAME)\n\n\n@app.post(\"/signup\")\ndef signup():\n    body = request.get_json()\n    user = create_user(body[\"email\"], body[\"password_hash\"], body[\"lat\"], body[\"lon\"])\n    return jsonify({\"id\": user[\"id\"]}), 201\n\n\n@app.post(\"/import\")\ndef import_itinerary():\n    return jsonify(yaml.load(request.data, Loader=yaml.Loader))\n\n\n@app.get(\"/export/<trip_id>.pdf\")\ndef export(trip_id: str):\n    doc = fitz.open()\n    doc.new_page().insert_text((72, 72), f\"Trip {trip_id}\")\n    return doc.tobytes(), 200, {\"Content-Type\": \"application/pdf\"}\n",
+   "crypto_utils.py": "\"\"\"Encrypts trip notes at rest with AES-256-GCM.\"\"\"\nimport os\n\nfrom cryptography.hazmat.primitives.ciphers.aead import AESGCM\n\n\ndef encrypt_note(key: bytes, plaintext: bytes) -> bytes:\n    nonce = os.urandom(12)\n    return nonce + AESGCM(key).encrypt(nonce, plaintext, None)\n\n\ndef decrypt_note(key: bytes, blob: bytes) -> bytes:\n    return AESGCM(key).decrypt(blob[:12], blob[12:], None)\n",
+   "signup.py": "\"\"\"Sign-up flow.\"\"\"\nimport uuid\n\nfrom analytics import track\n\nUSERS: dict[str, dict] = {}\n\n\ndef create_user(email: str, password_hash: str, latitude: float, longitude: float) -> dict:\n    user = {\n        \"id\": str(uuid.uuid4()),\n        \"email\": email,\n        \"password_hash\": password_hash,\n        \"home_location\": {\"lat\": latitude, \"lon\": longitude},\n    }\n    USERS[user[\"id\"]] = user\n    track(\"signup_completed\", user)\n    return user\n"
+  }
+ },
+ "facts": {
+  "personal_data": [
+   {
+    "kind": "email address",
+    "file": "analytics.py",
+    "line": 12,
+    "purpose": "create and secure your account"
+   },
+   {
+    "kind": "email address",
+    "file": "signup.py",
+    "line": 12,
+    "purpose": "create and secure your account"
+   },
+   {
+    "kind": "home location",
+    "file": "signup.py",
+    "line": 14,
+    "purpose": "create and secure your account"
+   }
+  ],
+  "third_parties": [
+   {
+    "name": "MetricFlow",
+    "data_sent": "email, user_id, locale",
+    "destination_country": "United States",
+    "file": "analytics.py",
+    "line": 12
+   }
+  ],
+  "consent_points": [],
+  "crypto": [
+   {
+    "algorithm": "AES-256-GCM",
+    "file": "crypto_utils.py",
+    "line": 1
+   }
+  ],
+  "ai_features": [],
+  "policy_declares": [
+   "Your email address, to create and secure your account.",
+   "We do not share your personal data with third parties."
+  ],
+  "secrets": [
+   {
+    "file": "config.py",
+    "line": 8,
+    "type": "Secret Keyword"
+   }
+  ],
+  "vulns": [
+   {
+    "package": "pyyaml",
+    "version": "5.3",
+    "vuln_id": "PYSEC-2020-96",
+    "fix_versions": [
+     "5.3.1"
+    ]
+   },
+   {
+    "package": "pyyaml",
+    "version": "5.3",
+    "vuln_id": "PYSEC-2021-142",
+    "fix_versions": [
+     "5.4"
+    ]
+   }
+  ],
+  "licences": [
+   {
+    "package": "Flask",
+    "version": "3.1.3",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "Jinja2",
+    "version": "3.1.6",
+    "licence": "BSD License"
+   },
+   {
+    "package": "MarkupSafe",
+    "version": "3.0.4",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "PyMuPDF",
+    "version": "1.25.5",
+    "licence": "Dual Licensed - GNU AFFERO GPL 3.0 or Artifex Commercial License"
+   },
+   {
+    "package": "PyYAML",
+    "version": "5.3",
+    "licence": "MIT License"
+   },
+   {
+    "package": "Werkzeug",
+    "version": "3.1.9",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "blinker",
+    "version": "1.9.0",
+    "licence": "MIT License"
+   },
+   {
+    "package": "certifi",
+    "version": "2026.10.23",
+    "licence": "Mozilla Public License 2.0 (MPL 2.0)"
+   },
+   {
+    "package": "cffi",
+    "version": "2.1.1",
+    "licence": "MIT-0"
+   },
+   {
+    "package": "charset-normalizer",
+    "version": "3.5.2",
+    "licence": "MIT"
+   },
+   {
+    "package": "click",
+    "version": "8.5.1",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "cryptography",
+    "version": "50.0.2",
+    "licence": "Apache-2.0 OR BSD-3-Clause"
+   },
+   {
+    "package": "idna",
+    "version": "3.20",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "itsdangerous",
+    "version": "2.2.0",
+    "licence": "BSD License"
+   },
+   {
+    "package": "pycparser",
+    "version": "3.12",
+    "licence": "BSD-3-Clause"
+   },
+   {
+    "package": "requests",
+    "version": "2.33.0",
+    "licence": "Apache Software License"
+   },
+   {
+    "package": "urllib3",
+    "version": "2.8.0",
+    "licence": "MIT"
+   }
+  ],
+  "distribution": "closed-source SaaS",
+  "enrichment": [
+   {
+    "subject": "MetricFlow",
+    "kind": "vendor",
+    "summary": "MetricFlow is developed and maintained by dbt Labs and operates through YAML files with semantic models and metrics. It works with the Apache Ossie format and is compatible with dbt version 1.6 and higher.",
+    "source_url": "https://docs.getdbt.com/docs/build/about-metricflow",
+    "query": "MetricFlow data processing location data storage",
+    "fetched_at": "2026-11-14T07:07:09+00:00",
+    "cached": true
+   },
+   {
+    "subject": "PYSEC-2020-96 pyyaml 5.3",
+    "kind": "vuln",
+    "summary": "This vulnerability allows arbitrary code execution when processing untrusted YAML files through the full_load method or with the FullLoader loader. It was introduced in version 5.1 and fixed in version 5.3.1.",
+    "source_url": "https://deps.dev/advisory/osv/PYSEC-2020-96",
+    "query": "PYSEC-2020-96 pyyaml vulnerability severity impact version",
+    "fetched_at": "2026-11-14T07:09:17+00:00",
+    "cached": false
+   },
+   {
+    "subject": "PyMuPDF (Dual Licensed - GNU AFFERO GPL 3.0 or Artifex Commercial License)",
+    "kind": "licence",
+    "summary": "PyMuPDF is licensed under GNU AGPL-3.0, which requires source-disclosure for networked products, making it unsuitable for most commercial closed-source applications. A commercial license from Artifex is required for proprietary SaaS products, internal tools, and embedded deployments to avoid AGPL obligations.",
+    "source_url": "https://pymupdf.io/licensing",
+    "query": "PyMuPDF license obligations SaaS closed source",
+    "fetched_at": "2026-11-14T07:09:17+00:00",
+    "cached": false
+   },
+   {
+    "subject": "PYSEC-2021-142 pyyaml 5.3",
+    "kind": "vuln",
+    "summary": "A vulnerability was discovered in the PyYAML library in versions before 5.4, where it is susceptible to arbitrary code execution when processing untrusted YAML files through the full_load method or with the FullLoader loader. This flaw allows an attacker to execute arbitrary code on the system by abusing the python/object/new constructor and is due to an incomplete fix for CVE-2020-1747.",
+    "source_url": "https://osv.dev/vulnerability/PYSEC-2021-142",
+    "query": "PYSEC-2021-142 pyyaml vulnerability severity impact version",
+    "fetched_at": "2026-11-14T07:09:16+00:00",
+    "cached": false
+   }
+  ]
+ },
+ "cells": [
+  {
+   "market": "JP",
+   "domain": "security",
+   "findings": [
+    {
+     "id": "b6fa211318",
+     "market": "JP",
+     "domain": "security",
+     "severity": "blocker",
+     "title": "Outdated PyYAML Version with Known Vulnerabilities",
+     "why": "The facts show that PyYAML version 5.3 has two critical vulnerabilities (PYSEC-2020-96 and PYSEC-2021-142) that allow arbitrary code execution. The rule requires implementing vulnerability management processes to identify and remediate such security issues.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 3,
+      "snippet": "PyYAML==5.3",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "security",
+      "name": "Vulnerability Management",
+      "requirement": "Software products must implement vulnerability management processes to identify, track, and remediate security vulnerabilities in components like pyyaml.",
+      "source_url": "https://www.meti.go.jp/english/policy/safety_security/cybersecurity/downloadfiles/sbom_tebiki02_en.pdf",
+      "source_title": "sbom_tebiki02_en.pdf",
+      "fetched_at": "2026-11-14T07:07:15+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Upgrade PyYAML to version 5.4 or later to address known vulnerabilities."
+    },
+    {
+     "id": "142b616e8c",
+     "market": "JP",
+     "domain": "security",
+     "severity": "blocker",
+     "title": "Missing SBOM for Cybersecurity Resilience",
+     "why": "The facts do not include any SBOM documentation or file, which is required by the rule to manage vulnerabilities and ensure cybersecurity resilience across the software supply chain in Japan.",
+     "evidence": {
+      "file": null,
+      "line": null,
+      "snippet": null,
+      "missing_artifact": "No SBOM file found in the project"
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "security",
+      "name": "SBOM Requirement",
+      "requirement": "Software products must maintain a Software Bill of Materials (SBOM) to manage vulnerabilities and ensure cybersecurity resilience across the software supply chain.",
+      "source_url": "https://www.meti.go.jp/english/press/2026/07/20260730001.html",
+      "source_title": "METI Jointly Signs International Guidance on Minimum Elements for Software Bill of Materials (SBOM) for Cybersecurity with National Cybersecurity Office (NCO)/METI Ministry of Economy, Trade and Industry",
+      "fetched_at": "2026-11-14T07:07:15+00:00"
+     },
+     "fix_type": "document",
+     "fix_summary": "Generate and maintain a Software Bill of Materials (SBOM) to manage vulnerabilities and ensure cybersecurity resilience."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "JP",
+     "domain": "security",
+     "name": "SBOM Requirement",
+     "requirement": "Software products must maintain a Software Bill of Materials (SBOM) to manage vulnerabilities and ensure cybersecurity resilience across the software supply chain.",
+     "source_url": "https://www.meti.go.jp/english/press/2026/07/20260730001.html",
+     "source_title": "METI Jointly Signs International Guidance on Minimum Elements for Software Bill of Materials (SBOM) for Cybersecurity with National Cybersecurity Office (NCO)/METI Ministry of Economy, Trade and Industry",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "security",
+     "name": "Vulnerability Management",
+     "requirement": "Software products must implement vulnerability management processes to identify, track, and remediate security vulnerabilities in components like pyyaml.",
+     "source_url": "https://www.meti.go.jp/english/policy/safety_security/cybersecurity/downloadfiles/sbom_tebiki02_en.pdf",
+     "source_title": "sbom_tebiki02_en.pdf",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "security",
+     "name": "Security by Design",
+     "requirement": "Software providers must implement cybersecurity measures during the design phase to ensure secure software delivery and protect customers from cyber threats.",
+     "source_url": "https://www.meti.go.jp/english/press/2026/0331_002.html",
+     "source_title": "Guidelines on the Roles Expected of Cyber Infrastructure Providers (Japanese and English Versions)/METI Ministry of Economy, Trade and Industry",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "security",
+     "name": "Third-Party Data Handling",
+     "requirement": "When sharing personal data with third parties, software products must comply with Japanese cybersecurity guidelines and ensure proper data handling practices.",
+     "source_url": "https://www.meti.go.jp/english/press/2026/0331_002.html",
+     "source_title": "Guidelines on the Roles Expected of Cyber Infrastructure Providers (Japanese and English Versions)/METI Ministry of Economy, Trade and Industry",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    }
+   ],
+   "cached": true,
+   "fetched_at": "2026-11-14T07:07:15+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "JP",
+   "domain": "privacy",
+   "findings": [
+    {
+     "id": "f58474eca9",
+     "market": "JP",
+     "domain": "privacy",
+     "severity": "blocker",
+     "title": "Email sent to US analytics vendor",
+     "why": "The product sends email addresses to MetricFlow, a US-based vendor, which violates the Third-Party Transfer Restrictions rule. According to the enrichment, MetricFlow is hosted in the United States and processes data through dbt Labs.",
+     "evidence": {
+      "file": "analytics.py",
+      "line": 12,
+      "snippet": "        \"email\": user[\"email\"],",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "privacy",
+      "name": "Third-Party Transfer Restrictions",
+      "requirement": "Personal information must not be transferred to third parties without proper consent or unless specifically permitted by law.",
+      "source_url": "https://www.ppc.go.jp/files/pdf/APPI_english.pdf",
+      "source_title": "Amended Act on the Protection of Personal Information(June 2020 ...",
+      "fetched_at": "2026-11-14T07:07:17+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Remove email address from data sent to MetricFlow in the United States."
+    },
+    {
+     "id": "bc174c653a",
+     "market": "JP",
+     "domain": "privacy",
+     "severity": "warning",
+     "title": "Home location collected for account creation",
+     "why": "The home location data is collected for creating and securing the account, which may exceed the specified purpose under the Personal Data Collection Limitation rule. The purpose stated is only for account creation and security, but location data is not necessary for this.",
+     "evidence": {
+      "file": "signup.py",
+      "line": 14,
+      "snippet": "        \"home_location\": {\"lat\": latitude, \"lon\": longitude},",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "privacy",
+      "name": "Personal Data Collection Limitation",
+      "requirement": "Personal information must only be collected for specified purposes and must not be used for purposes beyond what is necessary for the performance of the business operator's duties.",
+      "source_url": "https://www.ppc.go.jp/files/pdf/280222_amendedlaw.pdf",
+      "source_title": "Amended Act on the Protection of Personal Information( ...",
+      "fetched_at": "2026-11-14T07:07:17+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Modify the signup process to not collect home location for account creation."
+    },
+    {
+     "id": "ea3d8a2992",
+     "market": "JP",
+     "domain": "privacy",
+     "severity": "blocker",
+     "title": "No explicit consent for data sharing",
+     "why": "There is no record of consent points in the product's data handling, which is required by the Third-Party Transfer Restrictions rule. Users must explicitly consent to their data being shared with third parties such as MetricFlow.",
+     "evidence": {
+      "file": null,
+      "line": null,
+      "snippet": null,
+      "missing_artifact": "consent_points"
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "privacy",
+      "name": "Third-Party Transfer Restrictions",
+      "requirement": "Personal information must not be transferred to third parties without proper consent or unless specifically permitted by law.",
+      "source_url": "https://www.ppc.go.jp/files/pdf/APPI_english.pdf",
+      "source_title": "Amended Act on the Protection of Personal Information(June 2020 ...",
+      "fetched_at": "2026-11-14T07:07:17+00:00"
+     },
+     "fix_type": "document",
+     "fix_summary": "Implement explicit consent mechanisms for data sharing with third parties like MetricFlow."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "JP",
+     "domain": "privacy",
+     "name": "Personal Data Collection Limitation",
+     "requirement": "Personal information must only be collected for specified purposes and must not be used for purposes beyond what is necessary for the performance of the business operator's duties.",
+     "source_url": "https://www.ppc.go.jp/files/pdf/280222_amendedlaw.pdf",
+     "source_title": "Amended Act on the Protection of Personal Information( ...",
+     "fetched_at": "2026-11-14T07:07:17+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "privacy",
+     "name": "Data Security Requirements",
+     "requirement": "Business operators must implement appropriate security measures to protect personal information from unauthorized access, loss, or damage.",
+     "source_url": "https://www.ppc.go.jp/files/pdf/Act_on_the_Protection_of_Personal_Information.pdf",
+     "source_title": "Amended Act on the Protection of Personal Information (Tentative ...",
+     "fetched_at": "2026-11-14T07:07:17+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "privacy",
+     "name": "Third-Party Transfer Restrictions",
+     "requirement": "Personal information must not be transferred to third parties without proper consent or unless specifically permitted by law.",
+     "source_url": "https://www.ppc.go.jp/files/pdf/APPI_english.pdf",
+     "source_title": "Amended Act on the Protection of Personal Information(June 2020 ...",
+     "fetched_at": "2026-11-14T07:07:17+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "privacy",
+     "name": "Data Processing Purpose Clarity",
+     "requirement": "Business operators must clearly state the purpose for collecting personal information and ensure that the collection is limited to what is necessary for that purpose.",
+     "source_url": "https://www.ppc.go.jp/files/pdf/PPC_rules.pdf",
+     "source_title": "Enforcement Rules for the Act on the Protection of Personal ...",
+     "fetched_at": "2026-11-14T07:07:17+00:00"
+    }
+   ],
+   "cached": true,
+   "fetched_at": "2026-11-14T07:07:17+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "JP",
+   "domain": "licences",
+   "findings": [
+    {
+     "id": "62e5983247",
+     "market": "JP",
+     "domain": "licences",
+     "severity": "blocker",
+     "title": "AGPL-licensed PyMuPDF used in closed-source SaaS",
+     "why": "PyMuPDF is dual licensed under GNU AFFERO GPL 3.0, which requires source code disclosure for network use. The product is distributed as closed-source SaaS, violating AGPL requirements. According to the enrichment, PyMuPDF's AGPL licensing makes it unsuitable for most commercial closed-source applications without a commercial license.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 4,
+      "snippet": "PyMuPDF==1.25.5",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "licences",
+      "name": "AGPL Compliance for SaaS",
+      "requirement": "If your SaaS product uses AGPL-licensed code, you must make the source code available to users who interact with it over a network, as the AGPL closes the SaaS loophole that allows proprietary software to use GPL-licensed code without sharing modifications.",
+      "source_url": "https://www.aberlawfirm.com/agpl-and-what-every-saas-company-should-know-about-it",
+      "source_title": "AGPL: What Every SaaS Company Should Know | Aber Law Firm",
+      "fetched_at": "2026-11-14T07:09:22+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Replace PyMuPDF with a commercially licensed alternative or obtain a commercial license to avoid AGPL obligations."
+    },
+    {
+     "id": "9e0cf8c64d",
+     "market": "JP",
+     "domain": "licences",
+     "severity": "blocker",
+     "title": "PyYAML vulnerable to arbitrary code execution",
+     "why": "PyYAML version 5.3 contains a vulnerability (PYSEC-2020-96) that allows arbitrary code execution when processing untrusted YAML files. This poses a security risk for the SaaS product, especially since it's distributed as closed-source and may process untrusted input.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 3,
+      "snippet": "PyYAML==5.3",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "licences",
+      "name": "AGPL vs GPL SaaS Loophole",
+      "requirement": "The AGPL was specifically created to address the SaaS loophole in the GPL, ensuring that when software is used over a network, the source code of any modifications must be disclosed, unlike the standard GPL which does not require disclosure for network-based usage.",
+      "source_url": "https://www.revenera.com/software-composition-analysis/glossary/what-is-the-agpl-license",
+      "source_title": "What Is the AGPL License? Requirements, Risks & Compliance",
+      "fetched_at": "2026-11-14T07:09:22+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Upgrade PyYAML to version 5.3.1 or higher to mitigate the arbitrary code execution vulnerability."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "JP",
+     "domain": "licences",
+     "name": "AGPL Compliance for SaaS",
+     "requirement": "If your SaaS product uses AGPL-licensed code, you must make the source code available to users who interact with it over a network, as the AGPL closes the SaaS loophole that allows proprietary software to use GPL-licensed code without sharing modifications.",
+     "source_url": "https://www.aberlawfirm.com/agpl-and-what-every-saas-company-should-know-about-it",
+     "source_title": "AGPL: What Every SaaS Company Should Know | Aber Law Firm",
+     "fetched_at": "2026-11-14T07:09:22+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "licences",
+     "name": "AGPL Network Use Requirement",
+     "requirement": "Under the AGPL, network use of modified software triggers the requirement to provide source code to users, which is different from the GPL where no distribution occurs and therefore no source disclosure is required.",
+     "source_url": "https://www.aberlawfirm.com/agpl-and-what-every-saas-company-should-know-about-it",
+     "source_title": "AGPL: What Every SaaS Company Should Know | Aber Law Firm",
+     "fetched_at": "2026-11-14T07:09:22+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "licences",
+     "name": "Copyleft Obligations in SaaS",
+     "requirement": "Using AGPL-licensed components in a SaaS offering requires compliance with the copyleft provisions, meaning that any modifications made to the AGPL-licensed code must be made available to users under the same license, regardless of whether the software is distributed or not.",
+     "source_url": "https://fossa.com/blog/open-source-software-licenses-101-agpl-license",
+     "source_title": "Open Source Software Licenses 101: The AGPL License | FOSSA Blog",
+     "fetched_at": "2026-11-14T07:09:22+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "licences",
+     "name": "AGPL vs GPL SaaS Loophole",
+     "requirement": "The AGPL was specifically created to address the SaaS loophole in the GPL, ensuring that when software is used over a network, the source code of any modifications must be disclosed, unlike the standard GPL which does not require disclosure for network-based usage.",
+     "source_url": "https://www.revenera.com/software-composition-analysis/glossary/what-is-the-agpl-license",
+     "source_title": "What Is the AGPL License? Requirements, Risks & Compliance",
+     "fetched_at": "2026-11-14T07:09:22+00:00"
+    }
+   ],
+   "cached": false,
+   "fetched_at": "2026-11-14T07:09:22+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "JP",
+   "domain": "trade",
+   "findings": [
+    {
+     "id": "1459fc17cc",
+     "market": "JP",
+     "domain": "trade",
+     "severity": "blocker",
+     "title": "Outdated PyYAML version vulnerable to code execution",
+     "why": "The requirement states that any transfer of controlled technologies or goods to certain regions or residents in Japan may require a license if they are subject to list control or catch-all control. The presence of a vulnerable version of PyYAML in the software stack poses a security risk that could lead to unauthorized access or data breaches, violating export control regulations.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 3,
+      "snippet": "PyYAML==5.3",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "trade",
+      "name": "License Requirements for Technology Transfer",
+      "requirement": "Any transfer of controlled technologies or goods to certain regions or residents in Japan may require a license from the Minister of Economy, Trade and Industry if they are subject to list control or catch-all control.",
+      "source_url": "https://www.meti.go.jp/policy/anpo/securityexportcontrol1.html",
+      "source_title": "\u5b89\u5168\u4fdd\u969c\u8cbf\u6613\u7ba1\u7406**Export Control*EnglishPage",
+      "fetched_at": "2026-11-14T07:07:15+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Upgrade PyYAML to version 5.4 or higher to address known vulnerabilities allowing arbitrary code execution."
+    },
+    {
+     "id": "8ed3637785",
+     "market": "JP",
+     "domain": "trade",
+     "severity": "blocker",
+     "title": "AGPL license in closed-source SaaS violates licensing terms",
+     "why": "According to the rules, technology transfers from Japanese institutions to individuals under significant influence of non-residents are considered deemed exports and require compliance with export control regulations. Using PyMuPDF under AGPL license in a closed-source SaaS application violates the licensing terms and could expose the product to legal risks under Japanese export control laws.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 4,
+      "snippet": "PyMuPDF==1.25.5",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "trade",
+      "name": "License Requirements for Technology Transfer",
+      "requirement": "Any transfer of controlled technologies or goods to certain regions or residents in Japan may require a license from the Minister of Economy, Trade and Industry if they are subject to list control or catch-all control.",
+      "source_url": "https://www.meti.go.jp/policy/anpo/securityexportcontrol1.html",
+      "source_title": "\u5b89\u5168\u4fdd\u969c\u8cbf\u6613\u7ba1\u7406**Export Control*EnglishPage",
+      "fetched_at": "2026-11-14T07:07:15+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Replace PyMuPDF with a commercially licensed alternative to avoid AGPL licensing obligations in closed-source SaaS deployment."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "JP",
+     "domain": "trade",
+     "name": "Export Control Compliance",
+     "requirement": "Academic and research institutions in Japan must comply with the Foreign Exchange and Foreign Trade Act's export control regulations, particularly when transferring sensitive technologies.",
+     "source_url": "https://www.meti.go.jp/english/press/2025/0924_003.html",
+     "source_title": "Guidance for the Control of Sensitive Technologies for Security Export (for Academic and Research Institutions) Amended/METI Ministry of Economy, Trade and Industry",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "trade",
+     "name": "Technology Transfer Restrictions",
+     "requirement": "Technology transfers from Japanese institutions to individuals under significant influence of non-residents are considered deemed exports and require compliance with export control regulations.",
+     "source_url": "https://www.meti.go.jp/policy/anpo/law_document/minashi/en_daigaku_.pdf",
+     "source_title": "the Regulations of Deemed Export Controls",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "trade",
+     "name": "Sensitive Technology Control",
+     "requirement": "The transfer of sensitive dual-use technologies from Japanese universities or research institutes to their researchers is subject to deemed export controls under the Foreign Exchange and Foreign Trade Law.",
+     "source_url": "https://www.meti.go.jp/policy/anpo/law_document/minashi/en_daigaku_.pdf",
+     "source_title": "the Regulations of Deemed Export Controls",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "trade",
+     "name": "License Requirements for Technology Transfer",
+     "requirement": "Any transfer of controlled technologies or goods to certain regions or residents in Japan may require a license from the Minister of Economy, Trade and Industry if they are subject to list control or catch-all control.",
+     "source_url": "https://www.meti.go.jp/policy/anpo/securityexportcontrol1.html",
+     "source_title": "\u5b89\u5168\u4fdd\u969c\u8cbf\u6613\u7ba1\u7406**Export Control*EnglishPage",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    }
+   ],
+   "cached": true,
+   "fetched_at": "2026-11-14T07:07:15+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "EU",
+   "domain": "security",
+   "findings": [],
+   "dropped_count": 0,
+   "rules": [],
+   "cached": true,
+   "fetched_at": "2026-11-14T07:07:17+00:00",
+   "status": "no rules retrieved"
+  },
+  {
+   "market": "EU",
+   "domain": "privacy",
+   "findings": [
+    {
+     "id": "77939ce7ad",
+     "market": "EU",
+     "domain": "privacy",
+     "severity": "blocker",
+     "title": "Email sent to US analytics vendor, not disclosed",
+     "why": "The email address is transferred to MetricFlow, a US-based vendor, without implementing appropriate safeguards as required by GDPR Article 44-49.",
+     "evidence": {
+      "file": "analytics.py",
+      "line": 12,
+      "snippet": "        \"email\": user[\"email\"],",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "privacy",
+      "name": "Data Transfer Restrictions",
+      "requirement": "Personal data transfers outside the European Economic Area require appropriate safeguards or derogations under GDPR Article 44-49.",
+      "source_url": "https://www.edpb.europa.eu/sme/be-compliant/international-data-transfers_en",
+      "source_title": "International data transfers | Data protection guide for small business | European Data Protection Board",
+      "fetched_at": "2026-11-14T07:07:15+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Implement appropriate safeguards or derogations for transferring personal data to MetricFlow in the United States."
+    },
+    {
+     "id": "2ed3265d86",
+     "market": "EU",
+     "domain": "privacy",
+     "severity": "warning",
+     "title": "Home location used for account creation purpose",
+     "why": "The home location data is collected for account creation purposes, but the policy declares that personal data is only used for creating and securing accounts, which may mislead users about the actual use of their data.",
+     "evidence": {
+      "file": "signup.py",
+      "line": 14,
+      "snippet": "        \"home_location\": {\"lat\": latitude, \"lon\": longitude},",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "privacy",
+      "name": "Purpose Limitation",
+      "requirement": "Personal data must be processed for specified, explicit, and legitimate purposes under GDPR Article 5(1)(a).",
+      "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF?uri=CELEX%3A32016R0679",
+      "source_title": "REGULATION  (EU)  2016/  679  OF  THE  EUROPEAN  PARLIAMENT  AND  OF  THE  COUNCIL  -  of  27  April  2016  -  on  the  protection  of  natural  persons  with  regard  to  the  processing  of  personal  data  and  on  the  free  movement  of  such  data,  and  repealing  Directive 95/  46/  EC  (General  Data  Protection  Regulation)",
+      "fetched_at": "2026-11-14T07:07:15+00:00"
+     },
+     "fix_type": "document",
+     "fix_summary": "Update privacy policy to clearly state that home location data is collected for account creation purposes."
+    },
+    {
+     "id": "aa135a7def",
+     "market": "EU",
+     "domain": "privacy",
+     "severity": "blocker",
+     "title": "Third-party data sharing without safeguards",
+     "why": "The product shares personal data including email addresses with MetricFlow, a third party located in the US, without implementing appropriate safeguards to maintain GDPR compliance as required by GDPR Article 44-49.",
+     "evidence": {
+      "file": "analytics.py",
+      "line": 12,
+      "snippet": "        \"email\": user[\"email\"],",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "privacy",
+      "name": "Third-Party Compliance",
+      "requirement": "When sharing personal data with third parties like MetricFlow in the US, appropriate safeguards must be implemented to maintain GDPR compliance.",
+      "source_url": "https://www.edpb.europa.eu/system/files/2026-02/edpb_edps_jointopinion_202602_digitalomnibus_en.pdf",
+      "source_title": "EDPB-EDPS Joint Opinion 2/2026 on the Proposal for a Regulation ...",
+      "fetched_at": "2026-11-14T07:07:15+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Implement appropriate safeguards for sharing personal data with MetricFlow in the United States."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "EU",
+     "domain": "privacy",
+     "name": "Data Transfer Restrictions",
+     "requirement": "Personal data transfers outside the European Economic Area require appropriate safeguards or derogations under GDPR Article 44-49.",
+     "source_url": "https://www.edpb.europa.eu/sme/be-compliant/international-data-transfers_en",
+     "source_title": "International data transfers | Data protection guide for small business | European Data Protection Board",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "privacy",
+     "name": "Purpose Limitation",
+     "requirement": "Personal data must be processed for specified, explicit, and legitimate purposes under GDPR Article 5(1)(a).",
+     "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF?uri=CELEX%3A32016R0679",
+     "source_title": "REGULATION  (EU)  2016/  679  OF  THE  EUROPEAN  PARLIAMENT  AND  OF  THE  COUNCIL  -  of  27  April  2016  -  on  the  protection  of  natural  persons  with  regard  to  the  processing  of  personal  data  and  on  the  free  movement  of  such  data,  and  repealing  Directive 95/  46/  EC  (General  Data  Protection  Regulation)",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "privacy",
+     "name": "Data Protection by Design",
+     "requirement": "Controllers must implement appropriate technical and organizational measures to ensure data protection by design and by default under GDPR Article 25.",
+     "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF?uri=CELEX%3A32016R0679",
+     "source_title": "REGULATION  (EU)  2016/  679  OF  THE  EUROPEAN  PARLIAMENT  AND  OF  THE  COUNCIL  -  of  27  April  2016  -  on  the  protection  of  natural  persons  with  regard  to  the  processing  of  personal  data  and  on  the  free  movement  of  such  data,  and  repealing  Directive 95/  46/  EC  (General  Data  Protection  Regulation)",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "privacy",
+     "name": "Third-Party Compliance",
+     "requirement": "When sharing personal data with third parties like MetricFlow in the US, appropriate safeguards must be implemented to maintain GDPR compliance.",
+     "source_url": "https://www.edpb.europa.eu/system/files/2026-02/edpb_edps_jointopinion_202602_digitalomnibus_en.pdf",
+     "source_title": "EDPB-EDPS Joint Opinion 2/2026 on the Proposal for a Regulation ...",
+     "fetched_at": "2026-11-14T07:07:15+00:00"
+    }
+   ],
+   "cached": true,
+   "fetched_at": "2026-11-14T07:07:15+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "EU",
+   "domain": "licences",
+   "findings": [
+    {
+     "id": "d69a7d6550",
+     "market": "EU",
+     "domain": "licences",
+     "severity": "blocker",
+     "title": "AGPL-licensed dependency in closed-source SaaS",
+     "why": "PyMuPDF is dual licensed under GNU AFFERO GPL 3.0, which requires source code disclosure for networked products. The product is distributed as closed-source SaaS, violating AGPL compliance requirements.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 4,
+      "snippet": "PyMuPDF==1.25.5",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "licences",
+      "name": "AGPL Compliance for SaaS",
+      "requirement": "If a SaaS product uses AGPL-licensed code, it must make the source code available to users who interact with it over a network, as the AGPL closes the SaaS loophole that exists in the standard GPL.",
+      "source_url": "https://www.aberlawfirm.com/agpl-and-what-every-saas-company-should-know-about-it",
+      "source_title": "AGPL: What Every SaaS Company Should Know | Aber Law Firm",
+      "fetched_at": "2026-11-14T07:09:24+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Replace PyMuPDF with a commercially licensed alternative or obtain a commercial license to avoid AGPL obligations."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "EU",
+     "domain": "licences",
+     "name": "AGPL Compliance for SaaS",
+     "requirement": "If a SaaS product uses AGPL-licensed code, it must make the source code available to users who interact with it over a network, as the AGPL closes the SaaS loophole that exists in the standard GPL.",
+     "source_url": "https://www.aberlawfirm.com/agpl-and-what-every-saas-company-should-know-about-it",
+     "source_title": "AGPL: What Every SaaS Company Should Know | Aber Law Firm",
+     "fetched_at": "2026-11-14T07:09:24+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "licences",
+     "name": "Open Source License Requirements",
+     "requirement": "Open source licenses, including the AGPL, require that software distributed over a network must make the source code available to users, ensuring that the freedoms of open source software are maintained even in SaaS environments.",
+     "source_url": "https://www.revenera.com/software-composition-analysis/glossary/what-is-the-agpl-license",
+     "source_title": "What Is the AGPL License? Requirements, Risks & Compliance",
+     "fetched_at": "2026-11-14T07:09:24+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "licences",
+     "name": "Copyleft License Obligations",
+     "requirement": "Copyleft licenses like the AGPL impose strict obligations on software providers, requiring them to share modifications and source code when the software is used over a network, which is a key difference from standard GPL licensing.",
+     "source_url": "https://fossa.com/blog/open-source-software-licenses-101-agpl-license",
+     "source_title": "Open Source Software Licenses 101: The AGPL License | FOSSA Blog",
+     "fetched_at": "2026-11-14T07:09:24+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "licences",
+     "name": "SaaS Loophole in Standard GPL",
+     "requirement": "The standard GPL does not require SaaS companies to disclose source code when using GPL-licensed software, as network use is not considered distribution, creating a loophole that the AGPL addresses.",
+     "source_url": "https://www.mend.io/blog/the-saas-loophole-in-gpl-open-source-licenses",
+     "source_title": "The SaaS Loophole In GPL Open Source Licenses",
+     "fetched_at": "2026-11-14T07:09:24+00:00"
+    }
+   ],
+   "cached": false,
+   "fetched_at": "2026-11-14T07:09:24+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "EU",
+   "domain": "trade",
+   "findings": [
+    {
+     "id": "a83b4d683a",
+     "market": "EU",
+     "domain": "trade",
+     "severity": "blocker",
+     "title": "PyMuPDF License Incompatibility with EU SaaS Requirements",
+     "why": "PyMuPDF is licensed under GNU AGPL-3.0, which requires source-disclosure for networked products, making it unsuitable for most commercial closed-source applications. This violates EU regulations regarding software licensing and distribution in SaaS environments.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 4,
+      "snippet": "PyMuPDF==1.25.5",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "trade",
+      "name": "Brokering and Technical Assistance Controls",
+      "requirement": "Brokering services and technical assistance related to dual-use items also require export authorization under EU regulations.",
+      "source_url": "https://eur-lex.europa.eu/EN/legal-content/summary/dual-use-export-controls.html",
+      "source_title": "Dual-use export controls | EUR-Lex",
+      "fetched_at": "2026-11-14T07:07:16+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Replace PyMuPDF with a license-compatible alternative or acquire a commercial license to comply with EU SaaS distribution rules."
+    },
+    {
+     "id": "ef4867476b",
+     "market": "EU",
+     "domain": "trade",
+     "severity": "blocker",
+     "title": "Outdated PyYAML Version Vulnerable to Code Execution",
+     "why": "PyYAML version 5.3 contains known vulnerabilities (PYSEC-2020-96 and PYSEC-2021-142) that allow arbitrary code execution when processing untrusted YAML files. This poses a significant risk to EU regulatory compliance for software handling sensitive trade data.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 3,
+      "snippet": "PyYAML==5.3",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "trade",
+      "name": "Brokering and Technical Assistance Controls",
+      "requirement": "Brokering services and technical assistance related to dual-use items also require export authorization under EU regulations.",
+      "source_url": "https://eur-lex.europa.eu/EN/legal-content/summary/dual-use-export-controls.html",
+      "source_title": "Dual-use export controls | EUR-Lex",
+      "fetched_at": "2026-11-14T07:07:16+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Upgrade PyYAML to a secure version to prevent arbitrary code execution vulnerabilities that could affect EU compliance."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "EU",
+     "domain": "trade",
+     "name": "Export Authorization Required",
+     "requirement": "Exports of dual-use items require authorization from EU member states, as specified in Regulation (EU) 2021/821.",
+     "source_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/HTML?uri=CELEX%3A32021R0821",
+     "source_title": "L_2021206EN.01000101.xml",
+     "fetched_at": "2026-11-14T07:07:16+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "trade",
+     "name": "Dual-Use Item Controls",
+     "requirement": "The EU maintains a list of dual-use items that require export authorization, as outlined in Regulation (EU) 2021/821 and its annexes.",
+     "source_url": "https://eur-lex.europa.eu/EN/legal-content/summary/dual-use-export-controls.html",
+     "source_title": "Dual-use export controls | EUR-Lex",
+     "fetched_at": "2026-11-14T07:07:16+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "trade",
+     "name": "Third Country Restrictions",
+     "requirement": "Export authorizations may be restricted or denied for certain third countries, such as Russia, due to security concerns, as seen in Delegated Regulation (EU) 2022/699.",
+     "source_url": "https://eur-lex.europa.eu/EN/legal-content/summary/dual-use-export-controls.html",
+     "source_title": "Dual-use export controls | EUR-Lex",
+     "fetched_at": "2026-11-14T07:07:16+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "trade",
+     "name": "Brokering and Technical Assistance Controls",
+     "requirement": "Brokering services and technical assistance related to dual-use items also require export authorization under EU regulations.",
+     "source_url": "https://eur-lex.europa.eu/EN/legal-content/summary/dual-use-export-controls.html",
+     "source_title": "Dual-use export controls | EUR-Lex",
+     "fetched_at": "2026-11-14T07:07:16+00:00"
+    }
+   ],
+   "cached": true,
+   "fetched_at": "2026-11-14T07:07:16+00:00",
+   "status": "ok"
+  }
+ ],
+ "log": [
+  "Scanning https://github.com/prajwal-3-14159/launchgate-demo-repo in a Daytona sandbox\u2026",
+  "Daytona sandbox 0c475159-36d0-4958-b93f-db39a86fa779: 9 files, 1 secrets, 2 vulnerabilities, 17 licences",
+  "Building fact sheet with cyankiwi/Qwen3-Coder-30B-A3B-Instruct-AWQ-4bit on ekWzMMP8i5vqTy2Un4NFCBs4UpmCeLTnRqWKu1DdvavZ.node.k8s.prd.nos.ci\u2026",
+  "Fact sheet: 3 personal-data items, 1 third parties, 0 consent points",
+  "Enrichment: 4 sourced facts from Tavily",
+  "Running 8 market \u00d7 domain agents in parallel\u2026",
+  "8 cells: 13 blockers, 2 warnings, 0 findings dropped by the evidence check",
+  "Tavily searches: 5 live, 7 from cache; model calls: 21 on ekWzMMP8i5vqTy2Un4NFCBs4UpmCeLTnRqWKu1DdvavZ.node.k8s.prd.nos.ci"
+ ],
+ "llm_host": "ekWzMMP8i5vqTy2Un4NFCBs4UpmCeLTnRqWKu1DdvavZ.node.k8s.prd.nos.ci",
+ "llm_model": "cyankiwi/Qwen3-Coder-30B-A3B-Instruct-AWQ-4bit",
+ "searches": {
+  "live": 5,
+  "cached": 7
+ },
+ "dropped_total": 0,
+ "error": null
+}

@@ -1,0 +1,630 @@
+{
+ "sample": true,
+ "repo_url": "https://github.com/prajwal-3-14159/launchgate-demo-repo",
+ "markets": [
+  "JP",
+  "EU"
+ ],
+ "scan": {
+  "sandbox_id": "sample-0000-no-sandbox",
+  "files": [
+   ".env.example",
+   "PRIVACY.md",
+   "README.md",
+   "analytics.py",
+   "app.py",
+   "config.py",
+   "crypto_utils.py",
+   "requirements.txt",
+   "signup.py"
+  ],
+  "secrets": [
+   {
+    "file": "config.py",
+    "line": 8,
+    "type": "Secret Keyword"
+   }
+  ],
+  "vulns": [
+   {
+    "package": "pyyaml",
+    "version": "5.3",
+    "vuln_id": "CVE-2020-14343",
+    "fix_versions": [
+     "5.4"
+    ]
+   }
+  ],
+  "licences": [
+   {
+    "package": "PyMuPDF",
+    "version": "1.24.9",
+    "licence": "GNU AFFERO GPL 3.0"
+   },
+   {
+    "package": "Flask",
+    "version": "2.3.3",
+    "licence": "BSD License"
+   }
+  ],
+  "key_files": {}
+ },
+ "facts": {
+  "personal_data": [
+   {
+    "kind": "email",
+    "file": "signup.py",
+    "line": 12,
+    "purpose": "account"
+   },
+   {
+    "kind": "location",
+    "file": "signup.py",
+    "line": 14,
+    "purpose": "home location"
+   }
+  ],
+  "third_parties": [
+   {
+    "name": "MetricFlow",
+    "data_sent": "email, user_id, locale",
+    "destination_country": "United States",
+    "file": "analytics.py",
+    "line": 17
+   }
+  ],
+  "consent_points": [],
+  "crypto": [
+   {
+    "algorithm": "AES-256-GCM",
+    "file": "crypto_utils.py",
+    "line": 9
+   }
+  ],
+  "ai_features": [],
+  "policy_declares": [
+   "Collects email address",
+   "Does not share personal data with third parties"
+  ],
+  "secrets": [
+   {
+    "file": "config.py",
+    "line": 8,
+    "type": "Secret Keyword"
+   }
+  ],
+  "vulns": [
+   {
+    "package": "pyyaml",
+    "version": "5.3",
+    "vuln_id": "CVE-2020-14343",
+    "fix_versions": [
+     "5.4"
+    ]
+   }
+  ],
+  "licences": [
+   {
+    "package": "PyMuPDF",
+    "version": "1.24.9",
+    "licence": "GNU AFFERO GPL 3.0"
+   },
+   {
+    "package": "Flask",
+    "version": "2.3.3",
+    "licence": "BSD License"
+   }
+  ],
+  "distribution": "closed-source SaaS",
+  "enrichment": [
+   {
+    "subject": "MetricFlow",
+    "kind": "vendor",
+    "summary": "Sample text: vendor processes event data in the United States; data processing agreement not stated in the sources.",
+    "source_url": "https://example.com/metricflow/data-residency",
+    "fetched_at": "2026-11-14T03:12:40+00:00",
+    "cached": false
+   },
+   {
+    "subject": "CVE-2020-14343 pyyaml 5.3",
+    "kind": "vuln",
+    "summary": "Critical; arbitrary code execution when loading untrusted YAML with full_load or FullLoader; fixed in 5.4.",
+    "source_url": "https://nvd.nist.gov/vuln/detail/CVE-2020-14343",
+    "fetched_at": "2026-11-14T03:12:40+00:00",
+    "cached": false
+   },
+   {
+    "subject": "PyMuPDF (GNU AFFERO GPL 3.0)",
+    "kind": "licence",
+    "summary": "AGPL requires offering source to users who interact with the software over a network; a commercial licence is the alternative.",
+    "source_url": "https://www.gnu.org/licenses/agpl-3.0.html",
+    "fetched_at": "2026-11-14T03:12:40+00:00",
+    "cached": true
+   }
+  ]
+ },
+ "cells": [
+  {
+   "market": "JP",
+   "domain": "security",
+   "findings": [
+    {
+     "id": "eb084de6f8",
+     "market": "JP",
+     "domain": "security",
+     "severity": "blocker",
+     "title": "Hard-coded API key in config.py",
+     "why": "detect-secrets flags a secret keyword at config.py:8; the key ships with the source.",
+     "evidence": {
+      "file": "config.py",
+      "line": 8,
+      "snippet": "PAYMENTS_API_KEY = \"lg_demo_9f8a7c6b5d4e3f2a1b0c9d8e7f6a5b4c\"",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "security",
+      "name": "Protect credentials and secrets",
+      "requirement": "Credentials must not be stored where unauthorised parties can read them.",
+      "source_url": "https://www.meti.go.jp/english/policy/netsecurity/index.html",
+      "source_title": "Cybersecurity Policy | METI",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Read PAYMENTS_API_KEY from an environment variable and add the name to .env.example."
+    },
+    {
+     "id": "cb1f790e5d",
+     "market": "JP",
+     "domain": "security",
+     "severity": "blocker",
+     "title": "PyYAML 5.3 has a known vulnerability (CVE-2020-14343)",
+     "why": "pip-audit reports PyYAML 5.3 as vulnerable; enrichment (https://nvd.nist.gov/vuln/detail/CVE-2020-14343) says it allows arbitrary code execution and is fixed in 5.4.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 3,
+      "snippet": "PyYAML==5.3",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "security",
+      "name": "No known exploitable vulnerabilities at release",
+      "requirement": "Products should be released without known exploitable vulnerabilities in their components.",
+      "source_url": "https://www.meti.go.jp/english/policy/netsecurity/index.html",
+      "source_title": "Cybersecurity Policy | METI",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Pin PyYAML to 5.4 or later in requirements.txt."
+    }
+   ],
+   "dropped_count": 1,
+   "rules": [
+    {
+     "market": "JP",
+     "domain": "security",
+     "name": "No known exploitable vulnerabilities at release",
+     "requirement": "Products should be released without known exploitable vulnerabilities in their components.",
+     "source_url": "https://www.meti.go.jp/english/policy/netsecurity/index.html",
+     "source_title": "Cybersecurity Policy | METI",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "security",
+     "name": "Protect credentials and secrets",
+     "requirement": "Credentials must not be stored where unauthorised parties can read them.",
+     "source_url": "https://www.meti.go.jp/english/policy/netsecurity/index.html",
+     "source_title": "Cybersecurity Policy | METI",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    }
+   ],
+   "cached": true,
+   "fetched_at": "2026-11-14T03:12:40+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "JP",
+   "domain": "privacy",
+   "findings": [
+    {
+     "id": "2c4c7e21ea",
+     "market": "JP",
+     "domain": "privacy",
+     "severity": "blocker",
+     "title": "Email sent to a US analytics vendor, not disclosed in PRIVACY.md",
+     "why": "analytics.py sends the user's email to MetricFlow (United States); PRIVACY.md says data is not shared with third parties.",
+     "evidence": {
+      "file": "analytics.py",
+      "line": 12,
+      "snippet": "\"email\": user[\"email\"],",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "privacy",
+      "name": "Disclose third-party provision and cross-border transfer",
+      "requirement": "Users must be told when personal data is provided to a third party in another country.",
+      "source_url": "https://www.ppc.go.jp/en/legal/",
+      "source_title": "Laws and Policies | Personal Information Protection Commission, Japan",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "document",
+     "fix_summary": "Add a third-party and cross-border transfer section to PRIVACY.md naming the analytics vendor, or stop sending the email."
+    },
+    {
+     "id": "e9761b0a30",
+     "market": "JP",
+     "domain": "privacy",
+     "severity": "blocker",
+     "title": "Home location stored at sign-up with no consent step",
+     "why": "signup.py stores latitude/longitude; the fact sheet contains no consent point and the policy does not mention location.",
+     "evidence": {
+      "file": "signup.py",
+      "line": 14,
+      "snippet": "\"home_location\": {\"lat\": latitude, \"lon\": longitude},",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "privacy",
+      "name": "Consent / lawful basis before collecting personal data",
+      "requirement": "Personal data may be collected only for a stated purpose and with consent where required.",
+      "source_url": "https://www.ppc.go.jp/en/legal/",
+      "source_title": "Laws and Policies | Personal Information Protection Commission, Japan",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Collect location only after an explicit consent step and record the consent."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "JP",
+     "domain": "privacy",
+     "name": "Disclose third-party provision and cross-border transfer",
+     "requirement": "Users must be told when personal data is provided to a third party in another country.",
+     "source_url": "https://www.ppc.go.jp/en/legal/",
+     "source_title": "Laws and Policies | Personal Information Protection Commission, Japan",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    },
+    {
+     "market": "JP",
+     "domain": "privacy",
+     "name": "Consent / lawful basis before collecting personal data",
+     "requirement": "Personal data may be collected only for a stated purpose and with consent where required.",
+     "source_url": "https://www.ppc.go.jp/en/legal/",
+     "source_title": "Laws and Policies | Personal Information Protection Commission, Japan",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    }
+   ],
+   "cached": false,
+   "fetched_at": "2026-11-14T03:12:40+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "JP",
+   "domain": "licences",
+   "findings": [
+    {
+     "id": "16873eaf04",
+     "market": "JP",
+     "domain": "licences",
+     "severity": "warning",
+     "title": "AGPL dependency (PyMuPDF) in a closed-source hosted product",
+     "why": "pip-licenses reports PyMuPDF under GNU AFFERO GPL 3.0; the README declares the product proprietary and closed source.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 4,
+      "snippet": "PyMuPDF==1.24.9",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "JP",
+      "domain": "licences",
+      "name": "AGPL network-use clause",
+      "requirement": "If users interact with a modified AGPL program over a network, its source must be offered to them.",
+      "source_url": "https://www.gnu.org/licenses/agpl-3.0.html",
+      "source_title": "GNU Affero General Public License v3.0",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Replace PyMuPDF with a permissively licensed PDF library or obtain the commercial licence."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "JP",
+     "domain": "licences",
+     "name": "AGPL network-use clause",
+     "requirement": "If users interact with a modified AGPL program over a network, its source must be offered to them.",
+     "source_url": "https://www.gnu.org/licenses/agpl-3.0.html",
+     "source_title": "GNU Affero General Public License v3.0",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    }
+   ],
+   "cached": true,
+   "fetched_at": "2026-11-14T03:12:40+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "JP",
+   "domain": "trade",
+   "findings": [],
+   "dropped_count": 0,
+   "rules": [],
+   "cached": false,
+   "fetched_at": null,
+   "status": "no rules retrieved"
+  },
+  {
+   "market": "EU",
+   "domain": "security",
+   "findings": [
+    {
+     "id": "db1fadbb91",
+     "market": "EU",
+     "domain": "security",
+     "severity": "blocker",
+     "title": "Hard-coded API key in config.py",
+     "why": "detect-secrets flags a secret keyword at config.py:8; the key ships with the source.",
+     "evidence": {
+      "file": "config.py",
+      "line": 8,
+      "snippet": "PAYMENTS_API_KEY = \"lg_demo_9f8a7c6b5d4e3f2a1b0c9d8e7f6a5b4c\"",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "security",
+      "name": "Protect credentials and secrets",
+      "requirement": "Credentials must not be stored where unauthorised parties can read them.",
+      "source_url": "https://eur-lex.europa.eu/eli/reg/2024/2847/oj",
+      "source_title": "Regulation (EU) 2024/2847 (Cyber Resilience Act)",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Read PAYMENTS_API_KEY from an environment variable and add the name to .env.example."
+    },
+    {
+     "id": "e64ebd0b82",
+     "market": "EU",
+     "domain": "security",
+     "severity": "blocker",
+     "title": "PyYAML 5.3 has a known vulnerability (CVE-2020-14343)",
+     "why": "pip-audit reports PyYAML 5.3 as vulnerable; enrichment (https://nvd.nist.gov/vuln/detail/CVE-2020-14343) says it allows arbitrary code execution and is fixed in 5.4.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 3,
+      "snippet": "PyYAML==5.3",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "security",
+      "name": "No known exploitable vulnerabilities at release",
+      "requirement": "Products should be released without known exploitable vulnerabilities in their components.",
+      "source_url": "https://eur-lex.europa.eu/eli/reg/2024/2847/oj",
+      "source_title": "Regulation (EU) 2024/2847 (Cyber Resilience Act)",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Pin PyYAML to 5.4 or later in requirements.txt."
+    }
+   ],
+   "dropped_count": 1,
+   "rules": [
+    {
+     "market": "EU",
+     "domain": "security",
+     "name": "No known exploitable vulnerabilities at release",
+     "requirement": "Products should be released without known exploitable vulnerabilities in their components.",
+     "source_url": "https://eur-lex.europa.eu/eli/reg/2024/2847/oj",
+     "source_title": "Regulation (EU) 2024/2847 (Cyber Resilience Act)",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "security",
+     "name": "Protect credentials and secrets",
+     "requirement": "Credentials must not be stored where unauthorised parties can read them.",
+     "source_url": "https://eur-lex.europa.eu/eli/reg/2024/2847/oj",
+     "source_title": "Regulation (EU) 2024/2847 (Cyber Resilience Act)",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    }
+   ],
+   "cached": false,
+   "fetched_at": "2026-11-14T03:12:40+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "EU",
+   "domain": "privacy",
+   "findings": [
+    {
+     "id": "d0c567120a",
+     "market": "EU",
+     "domain": "privacy",
+     "severity": "blocker",
+     "title": "Email sent to a US analytics vendor, not disclosed in PRIVACY.md",
+     "why": "analytics.py sends the user's email to MetricFlow (United States); PRIVACY.md says data is not shared with third parties.",
+     "evidence": {
+      "file": "analytics.py",
+      "line": 12,
+      "snippet": "\"email\": user[\"email\"],",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "privacy",
+      "name": "Disclose third-party provision and cross-border transfer",
+      "requirement": "Transfers of personal data to a third country need a legal basis and must be disclosed to the data subject.",
+      "source_url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+      "source_title": "Regulation (EU) 2016/679 (General Data Protection Regulation)",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "document",
+     "fix_summary": "Add a third-party and cross-border transfer section to PRIVACY.md naming the analytics vendor, or stop sending the email."
+    },
+    {
+     "id": "b4f157dbcf",
+     "market": "EU",
+     "domain": "privacy",
+     "severity": "blocker",
+     "title": "Home location stored at sign-up with no consent step",
+     "why": "signup.py stores latitude/longitude; the fact sheet contains no consent point and the policy does not mention location.",
+     "evidence": {
+      "file": "signup.py",
+      "line": 14,
+      "snippet": "\"home_location\": {\"lat\": latitude, \"lon\": longitude},",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "privacy",
+      "name": "Consent / lawful basis before collecting personal data",
+      "requirement": "Personal data may be collected only for a stated purpose and with consent where required.",
+      "source_url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+      "source_title": "Regulation (EU) 2016/679 (General Data Protection Regulation)",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Collect location only after an explicit consent step and record the consent."
+    }
+   ],
+   "dropped_count": 2,
+   "rules": [
+    {
+     "market": "EU",
+     "domain": "privacy",
+     "name": "Disclose third-party provision and cross-border transfer",
+     "requirement": "Transfers of personal data to a third country need a legal basis and must be disclosed to the data subject.",
+     "source_url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+     "source_title": "Regulation (EU) 2016/679 (General Data Protection Regulation)",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    },
+    {
+     "market": "EU",
+     "domain": "privacy",
+     "name": "Consent / lawful basis before collecting personal data",
+     "requirement": "Personal data may be collected only for a stated purpose and with consent where required.",
+     "source_url": "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
+     "source_title": "Regulation (EU) 2016/679 (General Data Protection Regulation)",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    }
+   ],
+   "cached": false,
+   "fetched_at": "2026-11-14T03:12:40+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "EU",
+   "domain": "licences",
+   "findings": [
+    {
+     "id": "f34d99e5fa",
+     "market": "EU",
+     "domain": "licences",
+     "severity": "warning",
+     "title": "AGPL dependency (PyMuPDF) in a closed-source hosted product",
+     "why": "pip-licenses reports PyMuPDF under GNU AFFERO GPL 3.0; the README declares the product proprietary and closed source.",
+     "evidence": {
+      "file": "requirements.txt",
+      "line": 4,
+      "snippet": "PyMuPDF==1.24.9",
+      "missing_artifact": null
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "licences",
+      "name": "AGPL network-use clause",
+      "requirement": "If users interact with a modified AGPL program over a network, its source must be offered to them.",
+      "source_url": "https://www.gnu.org/licenses/agpl-3.0.html",
+      "source_title": "GNU Affero General Public License v3.0",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "code",
+     "fix_summary": "Replace PyMuPDF with a permissively licensed PDF library or obtain the commercial licence."
+    }
+   ],
+   "dropped_count": 0,
+   "rules": [
+    {
+     "market": "EU",
+     "domain": "licences",
+     "name": "AGPL network-use clause",
+     "requirement": "If users interact with a modified AGPL program over a network, its source must be offered to them.",
+     "source_url": "https://www.gnu.org/licenses/agpl-3.0.html",
+     "source_title": "GNU Affero General Public License v3.0",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    }
+   ],
+   "cached": true,
+   "fetched_at": "2026-11-14T03:12:40+00:00",
+   "status": "ok"
+  },
+  {
+   "market": "EU",
+   "domain": "trade",
+   "findings": [
+    {
+     "id": "6eeeb39070",
+     "market": "EU",
+     "domain": "trade",
+     "severity": "warning",
+     "title": "AES-256 encryption used; no export classification on file",
+     "why": "crypto_utils.py uses AES-256-GCM; nothing in the repo records an export classification.",
+     "evidence": {
+      "file": null,
+      "line": null,
+      "snippet": null,
+      "missing_artifact": "no export-control classification note for the AES-256 feature"
+     },
+     "rule": {
+      "market": "EU",
+      "domain": "trade",
+      "name": "Dual-use controls on cryptography",
+      "requirement": "Software using strong cryptography may be a controlled dual-use item unless an exemption applies.",
+      "source_url": "https://eur-lex.europa.eu/eli/reg/2021/821/oj",
+      "source_title": "Regulation (EU) 2021/821 (dual-use export controls)",
+      "fetched_at": "2026-11-14T03:12:40+00:00"
+     },
+     "fix_type": "document",
+     "fix_summary": "Record an export classification (or the applicable exemption) for the encryption feature."
+    }
+   ],
+   "dropped_count": 1,
+   "rules": [
+    {
+     "market": "EU",
+     "domain": "trade",
+     "name": "Dual-use controls on cryptography",
+     "requirement": "Software using strong cryptography may be a controlled dual-use item unless an exemption applies.",
+     "source_url": "https://eur-lex.europa.eu/eli/reg/2021/821/oj",
+     "source_title": "Regulation (EU) 2021/821 (dual-use export controls)",
+     "fetched_at": "2026-11-14T03:12:40+00:00"
+    }
+   ],
+   "cached": false,
+   "fetched_at": "2026-11-14T03:12:40+00:00",
+   "status": "ok"
+  }
+ ],
+ "log": [
+  "[sample] scan: sandbox sample-0000-no-sandbox, 9 files, 1 secret, 1 vulnerability, 6 licences",
+  "[sample] fact sheet: 2 personal data items, 1 third party, 0 consent points",
+  "[sample] enrich: 3 enrichments kept",
+  "[sample] 8 cells analysed"
+ ],
+ "llm_host": "(sample data - no model called)",
+ "llm_model": "(none)",
+ "searches": {
+  "live": 0,
+  "cached": 0
+ },
+ "dropped_total": 5,
+ "error": null
+}
