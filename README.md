@@ -128,7 +128,7 @@ Tests: `.venv/bin/python -m pytest tests -q`
 
 ## Roadmap
 
-- Dependency-upgrade patches proven by the project's tests, with the release note that justifies each change cited (the idea behind our earlier concept, Kaizen).
+- Dependency-upgrade patches, with the release note that justifies each change cited.
 - Pull-request delivery instead of a diff.
 - More ecosystems (JavaScript/TypeScript first), private repos, more markets.
 

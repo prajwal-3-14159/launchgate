@@ -66,6 +66,12 @@
              break-after: page; break-inside: avoid; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .slide:last-child { break-after: auto; }
   }
+  table.gap td, table.gap th {font-size:1.2cqw; padding:.4cqw .8cqw;}
+  table.gap td.yes {font-weight:650; color:#067647;}
+  pre.code {font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size:1.25cqw; margin:.4cqw 0 1cqw;
+    padding:.8cqw 1cqw; border-radius:.6cqw; white-space:pre-wrap; border:1px solid #e2e8f0;}
+  pre.code.bad {background:#fef3f2; color:#b42318; border-color:#fecdca;}
+  pre.code.good {background:#f0fdf4; color:#067647; border-color:#bbf7d0;}
 </style>
 </head>
 <body>
@@ -73,100 +79,102 @@
 <section class="slide" id="s1"><div class="in">
   <p class="eyebrow">LAUNCHGATE</p>
   <h1>Find what blocks your release in each market before counsel does.</h1>
-  <div class="row">
+  <div class="row" style="align-items:flex-start">
     <div class="col">
-      <p class="body">A team shipping to Japan and the EU has to check security, privacy, licences and trade rules for each market. Today that is a late, manual review.</p>
-      <p class="body">LaunchGate takes a repo URL and target markets and returns a market × domain matrix of release blockers.</p>
-      <p class="lead">Every finding ties a line of code to a dated web source.</p>
+      <p class="body">Shipping to a new market means checking security, privacy, licences and trade rules for that market. Today that is a late, manual review, and code scanners stop at the code.</p>
+      <p class="lead">Give it a repo and your target markets. Get a matrix of release blockers, each tied to a line of code and a dated source.</p>
     </div>
     <div class="matrix" role="table" aria-label="Market by domain matrix from the demo repo">
       <div class="h">Domain</div><div class="h">Japan</div><div class="h">European Union</div>
       <div>Security</div><div class="cell red">3 blockers, 1 warning</div><div class="cell red">2 blockers, 1 warning</div>
-      <div>Privacy</div><div class="cell red">3 blockers</div><div class="cell red">3 blockers</div>
+      <div>Privacy</div><div class="cell red">2 blockers, 1 warning</div><div class="cell red">2 blockers, 1 warning</div>
       <div>Licences</div><div class="cell amber">1 warning</div><div class="cell amber">1 warning</div>
       <div>Trade</div><div class="cell green">none found</div><div class="cell green">none found</div>
     </div>
   </div>
+  <table class="gap" style="margin-top:1.6cqw">
+    <tr><th style="width:46%">What the job needs</th><th>Code scanners</th><th>LaunchGate</th></tr>
+    <tr><td>Find secrets and vulnerable dependencies</td><td>Yes</td><td class="yes">Yes</td></tr>
+    <tr><td>Know each market’s current rules</td><td>No</td><td class="yes">Yes, searched live</td></tr>
+    <tr><td>Tie every issue to a line of code and a dated source</td><td>No</td><td class="yes">Yes</td></tr>
+    <tr><td>Patch a blocker and prove the fix</td><td>No</td><td class="yes">Yes, in a sandbox, against your tests</td></tr>
+  </table>
   <div class="spacer"></div>
   <p class="small">Matrix from a run on our demo repo, 14 Nov 2026. Pre-counsel triage. Not legal advice.</p>
 </div></section>
 
 <section class="slide tone" id="s2"><div class="in">
-  <h2>How it works</h2>
+  <h2>How it works: the model proposes, code decides</h2>
   <div class="steps">
     <div class="step"><p class="n">Step 1</p><h3>Daytona sandbox</h3><p class="d">Clones the repo and runs detect-secrets, pip-audit, pip-licenses and bandit.</p></div>
     <div class="step"><p class="n">Step 2</p><h3>Fact sheet</h3><p class="d">An open model on Nosana reads the scan and key files and lists the facts.</p></div>
     <div class="step"><p class="n">Step 3</p><h3>Tavily rules</h3><p class="d">Fetches current rules per market × domain; enriches vendors, CVEs and licences.</p></div>
     <div class="step"><p class="n">Step 4</p><h3>Market agents</h3><p class="d">AgentField reasoners, one per market × domain, match facts to rules.</p></div>
     <div class="step key"><p class="n">Step 5</p><h3>Evidence check</h3><p class="d">Code drops any finding without a fetched source and a real line.</p></div>
-    <div class="step"><p class="n">Step 6</p><h3>CodeAF patch</h3><p class="d">Writes a patch for a code-fixable blocker; Daytona re-scans.</p></div>
+    <div class="step"><p class="n">Step 6</p><h3>CodeAF patch</h3><p class="d">Writes a patch; Daytona re-scans and runs the repo’s own tests. Rejected patches are retried with the reason.</p></div>
     <div class="step"><p class="n">Step 7</p><h3>HTML report</h3><p class="d">Writer agents produce an HTML report from the run.</p></div>
-    <div class="step out"><p class="n">The differentiator</p><p class="call">The model proposes; code decides.</p></div>
+    <div class="step out"><p class="n">The differentiator</p><p class="call">No fetched source and real line, no finding.</p></div>
   </div>
 </div></section>
 
 <section class="slide" id="s3"><div class="in">
-  <h2>What runs today</h2>
-  <p class="small" style="margin-top:1cqw">Measured on our demo repo, 14 Nov 2026</p>
+  <h2>Live result: 9 blockers found, 1 fixed and proven</h2>
+  <p class="small" style="margin-top:1cqw">Measured on our demo repo, 14 Nov 2026, running through the AgentField control plane</p>
   <div class="row">
     <div class="col">
-      <div class="stats">
-        <div class="stat"><div class="num">~53 s</div><p>8 cells: Japan, EU × 4 domains</p></div>
-        <div class="stat"><div class="num">11 + 4</div><p>blockers and warnings found</p></div>
-        <div class="stat"><div class="num">~22 s</div><p>sandbox scan</p></div>
-        <div class="stat"><div class="num">36–60 s</div><p>patch for the hard-coded key, re-scanned</p></div>
-        <div class="stat"><div class="num">7–19 s</div><p>HTML report</p></div>
-        <div class="stat"><div class="num">85</div><p>offline tests</p></div>
+      <div class="stats" style="grid-template-columns:repeat(2,1fr)">
+        <div class="stat"><div class="num">~53 s</div><p>full check, 2 markets × 4 domains</p></div>
+        <div class="stat"><div class="num">9 + 6</div><p>blockers and warnings, each sourced</p></div>
+        <div class="stat"><div class="num">32 s</div><p>patch written by CodeAF</p></div>
+        <div class="stat"><div class="num">2 / 2</div><p>repo tests pass after the patch</p></div>
       </div>
-      <p class="label">Findings cover all five planted issue categories</p>
-      <ul>
-        <li>Hard-coded key</li>
-        <li>Vulnerable PyYAML pin</li>
-        <li>Email sent to a US analytics vendor, not in the privacy policy</li>
-        <li>Location stored with no consent step</li>
-        <li>AGPL dependency in a closed-source product</li>
-      </ul>
+      <p class="label">Before: blocker in every market</p>
+      <pre class="code bad">PAYMENTS_API_KEY = "lg_demo_9f8a…5b4c"</pre>
+      <p class="label">After: LaunchGate’s patch, scanner clean, tests green</p>
+      <pre class="code good">PAYMENTS_API_KEY = os.environ["PAYMENTS_API_KEY"]</pre>
     </div>
     <div class="col">
-      <p class="label">What each sponsor does</p>
+      <p class="label">Each partner does a job the others cannot</p>
       <table>
-        <tr><th>Sponsor</th><th>Role</th></tr>
-        <tr><td>Daytona</td><td>Sandbox scan and patch verification</td></tr>
-        <tr><td>Tavily</td><td>Rules and enrichment; a source on every finding</td></tr>
-        <tr><td>Nosana</td><td>Every model call: Qwen3-Coder 30B on an RTX 3090 via vLLM</td></tr>
-        <tr><td>CodeAF</td><td>Writes the patch, running on the Nosana model</td></tr>
-        <tr><td>AgentField</td><td>One reasoner per stage on the AgentField control plane; fan-out per market × domain; CodeAF called through app.harness</td></tr>
+        <tr><th>Partner</th><th>Job, run live</th></tr>
+        <tr><td>Daytona</td><td>Runs untrusted repo code: clone, four scanners, patch re-scan, the repo’s tests</td></tr>
+        <tr><td>Tavily</td><td>Finds current rules per market and domain; a source link on every finding</td></tr>
+        <tr><td>Nosana</td><td>Serves every model call: Qwen3-Coder 30B on an RTX 3090</td></tr>
+        <tr><td>AgentField</td><td>Runs each stage as a reasoner and fans out one agent per market × domain</td></tr>
+        <tr><td>CodeAF</td><td>Writes the patch through app.harness, on the Nosana model</td></tr>
       </table>
+      <p class="small" style="margin-top:1.2cqw">Also found: vulnerable PyYAML pin, unsafe YAML load, email sent to a US analytics vendor not in the privacy policy, location stored with no consent step, AGPL dependency in a closed-source product.</p>
     </div>
   </div>
 </div></section>
 
 <section class="slide dark" id="s4"><div class="in">
-  <h2>Limits and next</h2>
+  <h2>Verified, not trusted</h2>
   <div class="row">
     <div class="col">
-      <p class="k">LIMITS TODAY</p>
+      <p class="k">THE RULES IT FOLLOWS</p>
       <ul>
-        <li>Pre-counsel triage, not legal advice</li>
-        <li>Python repos with requirements.txt</li>
-        <li>Japan and EU tested</li>
-        <li>Model-written findings vary slightly between runs; scanner findings do not</li>
+        <li>Every finding cites a source fetched in that run, or it is dropped</li>
+        <li>Repo code runs only in a throwaway sandbox</li>
+        <li>A patch counts only when the scanner is clean and your own tests pass</li>
+        <li>Nothing is pushed for you: you get a diff and a report to review</li>
+        <li>It never says a product is cleared; it is triage before counsel</li>
       </ul>
     </div>
     <div class="col">
-      <p class="k">NEXT</p>
+      <p class="k">NOW</p>
+      <ul><li>Public Python repos; Japan and EU; web app, patch and HTML report</li></ul>
+      <p class="k" style="margin-top:1.4cqw">NEXT</p>
       <ul>
-        <li>Patches proven by the project’s own tests</li>
         <li>Pull-request delivery</li>
-        <li>More ecosystems, JavaScript and TypeScript first</li>
-        <li>Private repos</li>
-        <li>More markets</li>
+        <li>Dependency upgrades with the release note cited</li>
+        <li>JavaScript and TypeScript; private repos; more markets</li>
       </ul>
     </div>
   </div>
   <div class="spacer"></div>
   <a class="link" href="https://github.com/prajwal-3-14159/launchgate">github.com/prajwal-3-14159/launchgate</a>
-  <p class="small">Pre-counsel triage. Not legal advice.</p>
+  <p class="small">Model-matched findings vary slightly between runs; scanner findings do not. Pre-counsel triage. Not legal advice.</p>
 </div></section>
 
 <script>
