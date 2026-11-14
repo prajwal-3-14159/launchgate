@@ -3,7 +3,7 @@ import json
 import re
 import shlex
 
-from daytona import Daytona
+from daytona import CreateSandboxFromSnapshotParams, Daytona
 from dotenv import load_dotenv
 
 from core.schema import ScanResult
@@ -101,9 +101,29 @@ def _key_files(run, files: list[str], secrets: list[dict]) -> dict[str, str]:
     return out
 
 
+LABELS = {"app": "launchgate"}
+
+
+def _cleanup_old(d: Daytona, keep: int = 1) -> None:
+    """Delete this app's earlier sandboxes, keeping the newest so its patch step still works.
+    Only sandboxes labelled app=launchgate are touched."""
+    try:
+        mine = [sb for sb in d.list() if (getattr(sb, "labels", None) or {}).get("app") == LABELS["app"]]
+        mine.sort(key=lambda sb: str(getattr(sb, "created_at", "")), reverse=True)
+        for sb in mine[keep:]:
+            try:
+                sb.delete()
+            except Exception:
+                pass
+    except Exception:
+        pass                                                 # cleanup must never block a scan
+
+
 def scan_repo(repo_url: str) -> ScanResult:
     d = Daytona()                                            # reads DAYTONA_API_KEY
-    sb = d.create()
+    _cleanup_old(d)
+    sb = d.create(CreateSandboxFromSnapshotParams(
+        labels=LABELS, auto_stop_interval=20, auto_delete_interval=60))   # minutes; never left behind
     try:
         sb.git.clone(repo_url, _repo_dir(sb))
         run = _runner(sb)
