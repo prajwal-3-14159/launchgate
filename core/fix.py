@@ -102,11 +102,13 @@ def finish(finding: dict, sandbox_id: str, via: str, error: str | None = None) -
 
 
 def patch_with_cli(repo_url: str, sandbox_id: str, finding: dict) -> dict:
-    prepare_workdir(repo_url)
-    out = ""
-    for _ in range(2):                                       # two attempts, then give up honestly
+    """Up to two attempts. A patch that fails verification is discarded and retried from a clean clone."""
+    result: dict = {}
+    for attempt in (1, 2):
+        prepare_workdir(repo_url)
         ok, out = run_codeaf_cli(fix_prompt(finding))
-        if collect_diff().strip():
+        result = finish(finding, sandbox_id, f"codeaf exec (CLI) on {llm.host()}, attempt {attempt}",
+                        error=None if collect_diff().strip() else out[-600:])
+        if result["verified"]:
             break
-    return finish(finding, sandbox_id, f"codeaf exec (CLI) on {llm.host()}",
-                  error=None if collect_diff().strip() else out[-600:])
+    return result

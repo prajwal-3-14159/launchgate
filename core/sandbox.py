@@ -140,6 +140,10 @@ def verify_fix(sandbox_id: str, diff: str, finding: dict) -> tuple[bool, str]:
         left = [v for v in _scan_vulns(run) if not pkg or str(v["package"]).lower().replace("_", "-") == pkg]
         return (not left), f"pip-audit after patch: {len(left)} known vulnerabilities remain for {pkg or 'all packages'} {left[:3]}"
     left = [s for s in _scan_secrets(run) if s["file"] == file]
+    # A clean scan is not enough: the new code has to actually read the environment.
+    added = "\n".join(l[1:] for l in diff.splitlines() if l.startswith("+") and not l.startswith("+++"))
+    if not re.search(r"os\.environ|os\.getenv|getenv\(", added):
+        return False, "the patch removes the literal but does not read the value from the environment"
     # the scanner misses a secret kept as a default argument, so also look for the literal itself
     for literal in re.findall(r"""["']([^"']{16,})["']""", (finding.get("evidence") or {}).get("snippet") or ""):
         if run(f"grep -rnF --exclude-dir=.git -- {shlex.quote(literal)} . | head -3").result.strip():

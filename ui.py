@@ -9,7 +9,7 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)   # pick up keys added to .env after the server started
 
 ROOT = Path(__file__).resolve().parent
 SAMPLE = ROOT / "samples" / "sample_result.json"
@@ -337,8 +337,14 @@ elif page == "Results":
     ctx = res.get("context") or {}
 
     title = ctx.get("app_name") or "Launch check"
-    st.subheader(f"{title} — " + (f"{plural(n_block, 'blocker')} / {plural(n_warn, 'warning')}"
-                                  if (n_block or n_warn) else "no blockers found in these checks"))
+    completed = [c for c in cells if c.get("status") == "ok"]
+    if n_block or n_warn:
+        verdict = f"{plural(n_block, 'blocker')} / {plural(n_warn, 'warning')}"
+    elif res.get("error") or not completed:
+        verdict = "run did not complete — no checks ran"     # never report a failed run as a clean one
+    else:
+        verdict = "no blockers found in these checks"
+    st.subheader(f"{title} — {verdict}")
     st.caption(res.get("repo_url", ""))
     st.markdown(
         "<div class='lg-cards'>"
