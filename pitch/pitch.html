@@ -72,6 +72,10 @@
     padding:.8cqw 1cqw; border-radius:.6cqw; white-space:pre-wrap; border:1px solid #e2e8f0;}
   pre.code.bad {background:#fef3f2; color:#b42318; border-color:#fecdca;}
   pre.code.good {background:#f0fdf4; color:#067647; border-color:#bbf7d0;}
+  .who {border-left:.25cqw solid var(--accent); padding:.1cqw 0 .1cqw 1cqw; margin-bottom:.8cqw;}
+  .who p {font-size:1.3cqw; line-height:1.35; margin:0;}
+  .who .wk {font-size:1cqw; font-weight:700; letter-spacing:.08em; color:var(--accent); margin-bottom:.2cqw;}
+  #s1 .lead {font-size:1.45cqw; margin-top:.2cqw;}
 </style>
 </head>
 <body>
@@ -81,8 +85,9 @@
   <h1>Find what blocks your release in each market before counsel does.</h1>
   <div class="row" style="align-items:flex-start">
     <div class="col">
-      <p class="body">Shipping to a new market means checking security, privacy, licences and trade rules for that market. Today that is a late, manual review, and code scanners stop at the code.</p>
-      <p class="lead">Give it a repo and your target markets. Get a matrix of release blockers, each tied to a line of code and a dated source.</p>
+      <div class="who"><p class="wk">LARGE COMPANIES</p><p>Launch review is split across security, privacy, legal and trade teams and can run for months. LaunchGate gives them one shared first pass in about a minute.</p></div>
+      <div class="who"><p class="wk">START-UPS AND SOLO BUILDERS</p><p>No legal or security team to ask. LaunchGate checks code that was shipped fast, before a launch turns into a legal problem.</p></div>
+      <p class="lead">A repo and target markets in; sourced release blockers out.</p>
     </div>
     <div class="matrix" role="table" aria-label="Market by domain matrix from the demo repo">
       <div class="h">Domain</div><div class="h">Japan</div><div class="h">European Union</div>

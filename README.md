@@ -9,6 +9,13 @@ Every finding links a line of code (or a named missing document) to a dated web 
 
 The UI asks about the app (what it does, how it is distributed, who uses it, which personal data it handles, where it will launch), runs the check, shows the matrix and findings, generates a patch for code-fixable blockers, drafts a policy section for document fixes, and exports an HTML report.
 
+## Who it is for
+
+- **Large companies.** A launch review is usually split across security, privacy, legal and trade teams and can run for months. LaunchGate gives those teams one shared first pass, per market, in about a minute, so reviewers start from a sourced list instead of a blank page.
+- **Start-ups and solo builders.** They often ship quickly, sometimes with AI-written code, and have no legal or security team to ask. LaunchGate checks what was actually shipped and points at the specific lines and rules, before a launch turns into a legal problem.
+
+In both cases it is triage before counsel, not a replacement for it.
+
 ## Partner tech usage
 
 | Sponsor | File | Function | What it does |
