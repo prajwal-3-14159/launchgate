@@ -82,14 +82,47 @@
   .title .meta .v {font-size:1.4cqw; margin:0;}
   .title .meta .k {margin-bottom:.4cqw;}
   .dark h1 {color:#F4F5F0;} .dark .eyebrow {color:var(--mint);} .dark .tag {color:var(--pale);}
+  .cover {background:
+      radial-gradient(60cqw 40cqw at 82% 30%, rgba(20,184,166,.22), transparent 70%),
+      radial-gradient(50cqw 36cqw at 8% 100%, rgba(94,234,212,.10), transparent 70%),
+      linear-gradient(135deg, #0e1a33 0%, #132a3a 100%); position:relative; overflow:hidden;}
+  .cover::before {content:""; position:absolute; inset:0; opacity:.35;
+      background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size:4cqw 4cqw;}
+  .cover .in {position:relative;}
+  .cover-row {display:flex; align-items:center; gap:4cqw; margin-top:2cqw;}
+  .cover-text {flex:1.25;}
+  .title h1.big span {color:var(--mint);}
+  .title .rule {width:9cqw; height:.45cqw; border-radius:.3cqw; background:linear-gradient(90deg, var(--mint), #14b8a6); margin:0 0 2cqw;}
+  .cover-art {flex:1; display:grid; grid-template-columns:8cqw repeat(3, 1fr); gap:.9cqw; padding:2cqw;
+      background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.10); border-radius:1.6cqw;
+      transform:perspective(90cqw) rotateY(-9deg) rotateX(3deg);}
+  .cover .tag {max-width:40cqw;}
+  .cover-art .ch {font-size:1.1cqw; font-weight:700; letter-spacing:.1em; color:var(--pale); text-align:center; padding-bottom:.2cqw;}
+  .cover-art .rh {font-size:1.15cqw; font-weight:600; color:var(--pale); display:flex; align-items:center;}
+  .cover-art .t {height:4.4cqw; border-radius:.8cqw;}
+  .cover-art .t.r {background:linear-gradient(135deg,#f97066,#d92d20);} .cover-art .t.a {background:linear-gradient(135deg,#fdb022,#f79009);}
+  .cover-art .t.g {background:linear-gradient(135deg,#32d583,#12b76a);} .cover-art .t.d {background:rgba(255,255,255,.07); border:1px dashed rgba(255,255,255,.18);}
 </style>
 </head>
 <body>
 
-<section class="slide dark" id="s0"><div class="in title">
-  <p class="eyebrow">PRE-COUNSEL RELEASE TRIAGE</p>
-  <h1 class="big">LaunchGate</h1>
-  <p class="tag">Find what blocks your release in each market, with a line of code and a dated source behind every finding.</p>
+<section class="slide dark cover" id="s0"><div class="in title">
+  <div class="cover-row">
+    <div class="cover-text">
+      <p class="eyebrow">PRE-COUNSEL RELEASE TRIAGE</p>
+      <h1 class="big">Launch<span>Gate</span></h1>
+      <div class="rule"></div>
+      <p class="tag">Find what blocks your release in each market, with a line of code and a dated source behind every finding.</p>
+    </div>
+    <div class="cover-art" aria-hidden="true">
+      <div class="ch"></div><div class="ch">JP</div><div class="ch">EU</div><div class="ch">US</div>
+      <div class="rh">Security</div><div class="t r"></div><div class="t r"></div><div class="t d"></div>
+      <div class="rh">Privacy</div><div class="t r"></div><div class="t r"></div><div class="t d"></div>
+      <div class="rh">Licences</div><div class="t a"></div><div class="t a"></div><div class="t d"></div>
+      <div class="rh">Trade</div><div class="t g"></div><div class="t g"></div><div class="t d"></div>
+    </div>
+  </div>
   <div class="spacer"></div>
   <div class="meta">
     <div><p class="k">CODE</p><a class="link" href="https://github.com/prajwal-3-14159/launchgate">github.com/prajwal-3-14159/launchgate</a></div>
