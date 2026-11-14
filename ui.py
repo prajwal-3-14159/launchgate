@@ -18,11 +18,10 @@ DEMO_REPO = "https://github.com/prajwal-3-14159/launchgate-demo-repo"
 MARKETS = {"JP": "Japan", "EU": "European Union", "US": "United States", "IN": "India"}
 TESTED = ("JP", "EU")
 DOMAINS = ["security", "privacy", "licences", "trade"]
-DOMAIN_ICON = {"security": "🔐", "privacy": "🪪", "licences": "📜", "trade": "🌐"}
 AF_DEFAULT = "http://localhost:8080"
 PAGES = ["New check", "Results", "Report", "How it works", "About & limits"]
 
-st.set_page_config(page_title="LaunchGate", page_icon="🚦", layout="wide")
+st.set_page_config(page_title="LaunchGate", layout="wide")
 ss = st.session_state
 ss.setdefault("result", None)
 ss.setdefault("log", [])
@@ -37,35 +36,46 @@ if "_goto" in ss:                 # page switch requested by the previous run
 
 CSS = """
 <style>
-.block-container {padding-top: 2.2rem; max-width: 1250px;}
-.lg-hero {background: linear-gradient(120deg,#0f2a43 0%,#1d4e6b 60%,#2a7a78 100%); color:#fff;
-  border-radius:16px; padding:26px 30px; margin-bottom:18px;}
-.lg-hero h1 {color:#fff; margin:0; font-size:2rem; padding:0;}
-.lg-hero p {margin:6px 0 0; opacity:.9; font-size:1.02rem;}
-.lg-hero .sub {font-size:.82rem; opacity:.75; margin-top:10px;}
-.lg-cards {display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin:6px 0 18px;}
-.lg-card {border:1px solid rgba(128,128,128,.25); border-radius:12px; padding:14px 16px; background:rgba(128,128,128,.05);}
-.lg-card .k {font-size:.74rem; text-transform:uppercase; letter-spacing:.06em; opacity:.65;}
-.lg-card .v {font-size:1.7rem; font-weight:700; line-height:1.25;}
-.lg-card .v.small {font-size:.92rem; font-weight:600; word-break:break-all;}
-.lg-card.red .v {color:#c0392b;} .lg-card.amber .v {color:#b7791f;} .lg-card.green .v {color:#2e7d4f;}
-.lg-matrix {display:grid; gap:10px; margin-bottom:8px;}
-.lg-matrix .h {font-weight:700; font-size:.9rem; padding:6px 4px; text-align:center;}
-.lg-matrix .r {font-weight:600; display:flex; align-items:center; padding-left:4px;}
-.lg-cell {border-radius:12px; padding:14px 10px; text-align:center; font-weight:700; min-height:64px;
-  display:flex; flex-direction:column; justify-content:center;}
-.lg-cell small {font-weight:500; font-size:.72rem; opacity:.8;}
-.lg-cell.blocker {background:#fde2e1; color:#8f1d18;} .lg-cell.warning {background:#fff1cc; color:#7a5200;}
-.lg-cell.none {background:#e3f4e6; color:#1d5e2b;} .lg-cell.status {background:#ececec; color:#555;}
-.chip {display:inline-block; border-radius:999px; padding:2px 10px; font-size:.75rem; font-weight:700; margin-right:6px;}
-.chip.blocker {background:#fde2e1; color:#8f1d18;} .chip.warning {background:#fff1cc; color:#7a5200;}
-.chip.scanner {background:#dbeafe; color:#1e40af;} .chip.model {background:#ede9fe; color:#5b21b6;}
-.chip.plain {background:rgba(128,128,128,.18);}
-a.pill {display:inline-block; border:1px solid rgba(128,128,128,.4); border-radius:999px; padding:3px 12px;
-  font-size:.78rem; text-decoration:none; margin:4px 6px 4px 0;}
-a.pill:hover {border-color:#1d4e6b;}
-.lg-foot {font-size:.8rem; opacity:.7; border-top:1px solid rgba(128,128,128,.25); padding-top:10px; margin-top:26px;}
-.lg-step {border-left:3px solid #2a7a78; padding:2px 0 2px 12px; margin:8px 0;}
+html, body, [class*="css"], .stMarkdown, button, input, textarea {
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;}
+#MainMenu, footer, [data-testid="stToolbar"], [data-testid="stDecoration"] {display:none !important;}
+.block-container {padding-top: 2rem; max-width: 1180px;}
+h1, h2, h3, h4 {letter-spacing:-.01em;}
+.lg-head {border-bottom:1px solid #e2e8f0; padding:0 0 16px; margin-bottom:24px;}
+.lg-head .name {font-size:1.25rem; font-weight:650; color:#0f172a;}
+.lg-head .line {color:#475569; font-size:.95rem; margin-top:4px;}
+.lg-sum {color:#334155; font-size:.98rem; margin:-4px 0 16px;}
+.lg-cards {display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin:8px 0 16px;}
+.lg-card {border:1px solid #e2e8f0; border-radius:8px; padding:12px 16px; background:#fff;}
+.lg-card .k {font-size:.75rem; color:#64748b;}
+.lg-card .v {font-size:1.5rem; font-weight:650; line-height:1.3; color:#0f172a;}
+.lg-card .v.small {font-size:.8rem; font-weight:500; word-break:break-all;}
+.lg-card.red .v {color:#b42318;} .lg-card.amber .v {color:#b54708;} .lg-card.green .v {color:#067647;}
+.lg-matrix {display:grid; border:1px solid #e2e8f0; border-radius:8px; overflow:hidden; background:#fff; margin-bottom:8px;}
+.lg-matrix > div {padding:12px 16px; border-bottom:1px solid #e2e8f0; border-right:1px solid #e2e8f0;}
+.lg-matrix .h {font-weight:600; font-size:.8rem; color:#475569; background:#f8fafc;}
+.lg-matrix .r {font-weight:600; font-size:.9rem; color:#0f172a; background:#f8fafc; display:flex; align-items:center;}
+.lg-cell {font-weight:600; font-size:.92rem; min-height:56px; display:flex; flex-direction:column; justify-content:center;}
+.lg-cell small {font-weight:400; font-size:.72rem; color:#64748b; margin-top:2px;}
+.lg-cell.blocker {background:#fef3f2; color:#b42318;} .lg-cell.warning {background:#fffaeb; color:#b54708;}
+.lg-cell.none {background:#f6fef9; color:#067647;} .lg-cell.status {background:#f8fafc; color:#64748b; font-weight:500;}
+.dot {display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:8px; vertical-align:middle;}
+.dot.blocker {background:#d92d20;} .dot.warning {background:#f79009;}
+.chip {display:inline-block; border-radius:4px; padding:2px 8px; font-size:.75rem; font-weight:600; margin-right:8px;
+  border:1px solid transparent;}
+.chip.blocker {background:#fef3f2; color:#b42318; border-color:#fecdca;}
+.chip.warning {background:#fffaeb; color:#b54708; border-color:#fedf89;}
+.chip.scanner, .chip.model, .chip.plain {background:#f8fafc; color:#475569; border-color:#e2e8f0;}
+.lg-legend {font-size:.8rem; color:#64748b; margin:0 0 8px;}
+.lg-mk {font-size:1.05rem; font-weight:650; color:#0f172a; margin:24px 0 0; padding-bottom:8px; border-bottom:1px solid #e2e8f0;}
+.lg-dm {font-size:.78rem; font-weight:600; color:#64748b; text-transform:uppercase; letter-spacing:.05em; margin:16px 0 8px;}
+.lg-ok {border:1px solid #abefc6; background:#f6fef9; color:#067647; border-radius:8px; padding:8px 16px; font-weight:600; font-size:.9rem;}
+.lg-no {border:1px solid #fedf89; background:#fffaeb; color:#b54708; border-radius:8px; padding:8px 16px; font-weight:600; font-size:.9rem;}
+a.pill {display:inline-block; border:1px solid #cbd5e1; border-radius:4px; padding:2px 8px;
+  font-size:.78rem; text-decoration:none; margin:4px 8px 4px 0; color:#1d4ed8;}
+a.pill:hover {border-color:#1d4ed8;}
+.lg-foot {font-size:.8rem; color:#64748b; border-top:1px solid #e2e8f0; padding-top:16px; margin-top:32px;}
+.lg-step {border-left:2px solid #cbd5e1; padding:0 0 0 16px; margin:8px 0; color:#334155;}
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
@@ -151,30 +161,30 @@ def load_result(data: dict, via: str | None = None) -> None:
 
 # ---------- start-up tour ----------
 TOUR = [
-    ("🚦 What LaunchGate does",
+    ("What LaunchGate does",
      "Give it a public repo and the markets you want to launch in. It returns a **market × domain matrix** of "
      "release blockers. Every finding points at a line of code (or a named missing document) and at a dated "
      "web source you can open."),
-    ("📝 Tell it about your app",
+    ("Describe your app",
      "On **New check** you describe the product: what it is, how it is distributed, who uses it, which personal "
      "data it handles and where it will launch. The code shows *what* the app does; your answers tell the "
      "agents *in what setting*."),
-    ("🧮 Read the matrix",
+    ("Read the matrix",
      "Rows are domains (security, privacy, licences, trade), columns are markets. Each cell says "
      "“2 blockers”, “1 warning” or “none found”. Click through to the findings below it for "
      "the code line, the rule, its source and when it was fetched."),
-    ("🔎 The evidence check",
+    ("The evidence check",
      "The model proposes findings; **code decides which survive**. A finding is dropped unless its source was "
      "really fetched, its snippet really sits at the cited line (±3), and it states a fix. The number dropped "
      "is shown on every run."),
-    ("🩹 Patch and report",
+    ("Patch and report",
      "For a code-fixable blocker, **Generate patch** has CodeAF write a diff and Daytona re-scan it. For a "
      "document gap, **Draft policy section** writes a draft for counsel. The **Report** tab exports everything "
      "as one HTML file. This is pre-counsel triage, not legal advice."),
 ]
 
 
-@st.dialog("Welcome to LaunchGate", width="large")
+@st.dialog("How LaunchGate works", width="large")
 def tour() -> None:
     i = ss.tour_step
     title, body = TOUR[i]
@@ -199,7 +209,7 @@ def tour() -> None:
 
 # ---------- sidebar ----------
 with st.sidebar:
-    st.markdown("## 🚦 LaunchGate")
+    st.markdown("### LaunchGate")
     st.caption("Release blockers by market, each tied to a line of code and a dated source.")
     page = st.radio("Go to", PAGES, key="nav", label_visibility="collapsed")
     st.divider()
@@ -208,7 +218,7 @@ with st.sidebar:
                        help="Off: the same functions run through the plain asyncio pipeline.")
     af_url = st.text_input("AgentField URL", os.environ.get("AGENTFIELD_URL", AF_DEFAULT), disabled=not use_af)
     st.divider()
-    st.markdown("**No keys? Look at saved data**")
+    st.markdown("**Saved results**")
     if st.button("Load sample result", width="stretch", help="Hand-written example; no API calls"):
         load_result(json.loads(SAMPLE.read_text()))
         st.rerun()
@@ -228,9 +238,8 @@ if ss.tour_open:
     tour()
 
 st.markdown(
-    "<div class='lg-hero'><h1>🚦 LaunchGate</h1>"
-    "<p>Find what blocks your release in each market — every finding tied to a line of code and a dated source.</p>"
-    "<div class='sub'>Daytona sandbox · Tavily search · open model on Nosana · AgentField agents · CodeAF patch</div>"
+    "<div class='lg-head'><div class='name'>LaunchGate</div>"
+    "<div class='line'>Release blockers by market. Each finding links a line of code to a dated source.</div>"
     "</div>", unsafe_allow_html=True)
 
 res = ss.result
@@ -265,7 +274,7 @@ if page == "New check":
         mcols = st.columns(len(MARKETS))
         picked = []
         for col, (m, name) in zip(mcols, MARKETS.items()):
-            label = f"{name} ({m})" + ("" if m in TESTED else " — untested")
+            label = f"{name} ({m})" + ("" if m in TESTED else ", untested")
             if col.checkbox(label, value=m in TESTED, key=f"mk_{m}"):
                 picked.append(m)
         d1, d2 = st.columns([3, 1])
@@ -286,7 +295,7 @@ if page == "New check":
                        "distribution": distribution, "users": users, "data_categories": data_categories,
                        "uses_ai": uses_ai, "notes": notes.strip()}
             ss.fixes, ss.drafts, ss.log, ss.sandbox_deleted, ss.report_html = {}, {}, [], False, None
-            with st.status("Running launch check…", expanded=True) as status:
+            with st.status("Running launch check", expanded=True) as status:
                 def log(line: str) -> None:
                     ss.log.append(line)
                     status.write(line)
@@ -323,7 +332,7 @@ elif page == "Results":
         footer()
         st.stop()
     if is_sample:
-        st.warning("SAMPLE DATA — hand-written example for the demo repo. No sandbox, search or model was called. "
+        st.warning("Sample data: a hand-written example for the demo repo. No sandbox, search or model was called. "
                    "Source links in the sample are illustrative.")
     if res.get("error"):
         st.error(f"Run reported an error: {res['error']}")
@@ -341,10 +350,22 @@ elif page == "Results":
     if n_block or n_warn:
         verdict = f"{plural(n_block, 'blocker')} / {plural(n_warn, 'warning')}"
     elif res.get("error") or not completed:
-        verdict = "run did not complete — no checks ran"     # never report a failed run as a clean one
+        verdict = "run did not complete, no checks ran"     # never report a failed run as a clean one
     else:
         verdict = "no blockers found in these checks"
-    st.subheader(f"{title} — {verdict}")
+    st.subheader(f"{title}: {verdict}")
+    per_market = []
+    for m in (res.get("markets") or sorted({c["market"] for c in cells})):
+        mf = [f for c in cells if c["market"] == m for f in c.get("findings", [])]
+        b = sum(f["severity"] == "blocker" for f in mf)
+        w = sum(f["severity"] == "warning" for f in mf)
+        if b or w:
+            bits = ([plural(b, "blocker")] if b else []) + ([plural(w, "warning")] if w else [])
+            per_market.append(f"{MARKETS.get(m, m)}: {', '.join(bits)}.")
+        elif any(c["market"] == m and c.get("status") == "ok" for c in cells):
+            per_market.append(f"{MARKETS.get(m, m)}: no blockers found in these checks.")
+    if per_market:
+        st.markdown(f"<div class='lg-sum'>{esc(' '.join(per_market))}</div>", unsafe_allow_html=True)
     st.caption(res.get("repo_url", ""))
     st.markdown(
         "<div class='lg-cards'>"
@@ -361,7 +382,8 @@ elif page == "Results":
         c1.markdown(f"**Daytona sandbox**  \n`{res.get('scan', {}).get('sandbox_id', '—')}`")
         c2.markdown(f"**Model**  \n`{res.get('llm_model', '—')}`")
         c3.markdown(f"**Ran via**  \n{res.get('via', 'sample file' if is_sample else '—')}")
-        st.code("\n".join(ss.log or res.get("log", [])) or "(no log lines)")
+        via_line = [f"Ran via: {res['via']}"] if res.get("via") else []
+        st.code("\n".join(via_line + list(ss.log or res.get("log", []))) or "(no log lines)")
 
     # ---------- matrix ----------
     by_cell = {(c["market"], c["domain"]): c for c in cells}
@@ -375,25 +397,25 @@ elif page == "Results":
         b = sum(f["severity"] == "blocker" for f in c["findings"])
         w = sum(f["severity"] == "warning" for f in c["findings"])
         if b:
-            return plural(b, "blocker") + (f", {plural(w, 'warning')}" if w else ""), "blocker"
+            return plural(b, "blocker") + (f" · {plural(w, 'warning')}" if w else ""), "blocker"
         if w:
             return plural(w, "warning"), "warning"
         return "none found", "none"
 
     parts = ["<div class='h'></div>"] + [f"<div class='h'>{esc(MARKETS.get(m, m))}</div>" for m in markets]
     for d in DOMAINS:
-        parts.append(f"<div class='r'>{DOMAIN_ICON[d]}&nbsp; {d.capitalize()}</div>")
+        parts.append(f"<div class='r'>{d.capitalize()}</div>")
         for m in markets:
             c = by_cell.get((m, d))
             text, kind = cell_label(c)
             notes = []
             if c and c.get("cached"):
-                notes.append("rules from cache")
+                notes.append("cached rules")
             if c and c.get("dropped_count"):
                 notes.append(f"{c['dropped_count']} dropped")
             note = f"<small>{' · '.join(notes)}</small>" if notes else ""
             parts.append(f"<div class='lg-cell {kind}'>{esc(text)}{note}</div>")
-    st.markdown(f"<div class='lg-matrix' style='grid-template-columns:150px repeat({len(markets)},1fr)'>"
+    st.markdown(f"<div class='lg-matrix' style='grid-template-columns:140px repeat({len(markets)},1fr)'>"
                 f"{''.join(parts)}</div>", unsafe_allow_html=True)
 
     # ---------- drill-down ----------
@@ -403,28 +425,39 @@ elif page == "Results":
     show_d = f2.multiselect("Domain", DOMAINS, default=DOMAINS, format_func=str.capitalize)
     only_block = f3.toggle("Blockers only")
 
+    st.markdown("<div class='lg-legend'><b>From scanner</b>: reported by an open-source tool, the same on every run. "
+                "<b>Model-matched</b>: proposed by the model, kept only after the evidence check.</div>",
+                unsafe_allow_html=True)
     shown = 0
-    for d in DOMAINS:
-        for m in markets:
+    for m in markets:
+        market_open = False
+        for d in DOMAINS:
             c = by_cell.get((m, d))
             if not c or m not in show_m or d not in show_d:
                 continue
-            for f in sorted(c["findings"], key=lambda x: x["severity"] != "blocker"):
-                if only_block and f["severity"] != "blocker":
-                    continue
+            todo = [f for f in sorted(c["findings"], key=lambda x: x["severity"] != "blocker")
+                    if not (only_block and f["severity"] != "blocker")]
+            if not todo:
+                continue
+            if not market_open:
+                st.markdown(f"<div class='lg-mk'>{esc(MARKETS.get(m, m))}</div>", unsafe_allow_html=True)
+                market_open = True
+            st.markdown(f"<div class='lg-dm'>{d.capitalize()}</div>", unsafe_allow_html=True)
+            for f in todo:
                 shown += 1
-                icon = "🛑" if f["severity"] == "blocker" else "⚠️"
+                icon = "Blocker" if f["severity"] == "blocker" else "Warning"
                 fid = f["id"]
                 origin = f.get("origin", "model")
-                with st.expander(f"{icon} {MARKETS.get(m, m)} · {d.capitalize()} · {f['title']}",
+                with st.expander(f"{icon}: {f['title']}",
                                  expanded=fid in ss.fixes or fid in ss.drafts):
                     origin_tip = ("deterministic scanner result" if origin == "scanner"
                                   else "matched by the model, then evidence-checked")
                     st.markdown(
-                        f"<span class='chip {f['severity']}'>{f['severity']}</span>"
+                        f"<span class='chip {f['severity']}'>{f['severity'].capitalize()}</span>"
                         f"<span class='chip {'scanner' if origin == 'scanner' else 'model'}' title='{origin_tip}'>"
-                        f"{esc(origin)}</span>"
-                        f"<span class='chip plain'>fix: {esc(f['fix_type'])}</span>", unsafe_allow_html=True)
+                        f"{'From scanner' if origin == 'scanner' else 'Model-matched'}</span>"
+                        f"<span class='chip plain'>{'Code fix' if f['fix_type'] == 'code' else 'Document fix'}</span>",
+                        unsafe_allow_html=True)
                     st.write(f["why"])
                     left, right = st.columns(2)
                     with left:
@@ -452,7 +485,7 @@ elif page == "Results":
                         if st.button("Generate patch", key=f"fix_{fid}", disabled=blocked,
                                      help="Not available on sample data or after the sandbox is deleted"
                                      if blocked else None):
-                            with st.spinner("CodeAF is writing the patch; Daytona will re-scan…"):
+                            with st.spinner("CodeAF is writing the patch. Daytona will re-scan it."):
                                 try:
                                     ss.fixes[fid] = run_patch(res, f, use_af, af_url)
                                 except Exception as exc:
@@ -465,20 +498,22 @@ elif page == "Results":
                                 st.error(f"Patch step reported: {fix['error']}")
                             if fix.get("diff"):
                                 st.code(fix["diff"], language="diff")
+                                vlog = esc(str(fix.get("verification_log") or "no detail returned"))
                                 if fix.get("verified"):
-                                    st.success("Verified in sandbox: yes")
+                                    st.markdown(f"<div class='lg-ok'>Patch verified in sandbox</div>",
+                                                unsafe_allow_html=True)
+                                    st.caption(fix.get("verification_log") or "")
                                 else:
-                                    st.warning("Verified in sandbox: no")
-                                if fix.get("verification_log"):
-                                    st.caption(fix["verification_log"])
+                                    st.markdown(f"<div class='lg-no'>Patch not verified: {vlog}</div>",
+                                                unsafe_allow_html=True)
                                 if fix.get("via"):
-                                    st.caption(f"Patch written via {fix['via']}")
+                                    st.caption(f"Written via {fix['via']}")
                             else:
                                 st.info("No patch was produced. The fix summary above is the recommendation.")
                     else:
                         if st.button("Draft policy section", key=f"draft_{fid}", disabled=is_sample,
                                      help="Not available on sample data" if is_sample else None):
-                            with st.spinner("Drafting…"):
+                            with st.spinner("Drafting"):
                                 try:
                                     from core.match import draft_policy_section
                                     ss.drafts[fid] = draft_policy_section(f, res.get("facts", {}))
@@ -494,7 +529,7 @@ elif page == "Results":
     st.subheader("Supporting data")
     scan = res.get("scan", {})
     sast = scan.get("sast") or []
-    with st.expander(f"Scanner output — {len(scan.get('secrets', []))} secrets · {len(scan.get('vulns', []))} "
+    with st.expander(f"Scanner output: {len(scan.get('secrets', []))} secrets · {len(scan.get('vulns', []))} "
                      f"vulnerabilities · {len(scan.get('licences', []))} licences · {len(sast)} static-analysis hits"):
         st.caption("Deterministic open-source tools run inside the Daytona sandbox.")
         for label, key, tool in [("Secrets", "secrets", "detect-secrets"), ("Vulnerable dependencies", "vulns", "pip-audit"),
@@ -549,7 +584,7 @@ elif page == "Report":
         if is_sample:
             st.caption("Sample data: the report is built without model calls.")
         if st.button("Generate HTML report", type="primary"):
-            with st.spinner("Building the report…"):
+            with st.spinner("Building the report"):
                 try:
                     from core.report import build_report
                     ss.report_html = build_report(res, use_llm=not is_sample)
@@ -611,10 +646,10 @@ AgentField agent "launchgate"
         ], width="stretch", hide_index=True)
         st.markdown("#### Reading a finding")
         st.markdown(
-            "<span class='chip blocker'>blocker</span> should not launch in that market until fixed<br>"
-            "<span class='chip warning'>warning</span> worth a look before launch<br>"
-            "<span class='chip scanner'>scanner</span> came straight from a deterministic tool<br>"
-            "<span class='chip model'>model</span> matched by the model, then evidence-checked<br>"
+            "<span class='chip blocker'>Blocker</span> should not launch in that market until fixed<br>"
+            "<span class='chip warning'>Warning</span> worth a look before launch<br>"
+            "<span class='chip scanner'>From scanner</span> came straight from an open-source tool<br>"
+            "<span class='chip model'>Model-matched</span> proposed by the model, then evidence-checked<br>"
             "<a class='pill' href='#'>source · fetched 2026-11-14 07:10 UTC</a> opens the page the rule came from",
             unsafe_allow_html=True)
     footer()

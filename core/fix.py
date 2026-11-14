@@ -24,10 +24,14 @@ FIX_PROMPT = (
 )
 
 
-def fix_prompt(finding: dict) -> str:
+def fix_prompt(finding: dict, feedback: str | None = None) -> str:
     ev = finding.get("evidence") or {}
-    return FIX_PROMPT.format(title=finding["title"], file=ev.get("file"), line=ev.get("line"),
-                             fix_summary=finding.get("fix_summary", ""))
+    prompt = FIX_PROMPT.format(title=finding["title"], file=ev.get("file"), line=ev.get("line"),
+                               fix_summary=finding.get("fix_summary", ""))
+    if feedback:                                             # the verifier's verdict on the last attempt
+        prompt += (" A previous attempt at this fix was rejected by verification in the sandbox: "
+                   f"{feedback[:600]} Do not repeat that mistake. Do not edit the tests.")
+    return prompt
 
 
 def codeaf_env() -> dict[str, str]:
@@ -102,13 +106,14 @@ def finish(finding: dict, sandbox_id: str, via: str, error: str | None = None) -
 
 
 def patch_with_cli(repo_url: str, sandbox_id: str, finding: dict) -> dict:
-    """Up to two attempts. A patch that fails verification is discarded and retried from a clean clone."""
-    result: dict = {}
+    """Up to two attempts. A rejected patch is discarded and the verifier's reason goes into the retry."""
+    result, feedback = {}, None
     for attempt in (1, 2):
         prepare_workdir(repo_url)
-        ok, out = run_codeaf_cli(fix_prompt(finding))
+        ok, out = run_codeaf_cli(fix_prompt(finding, feedback))
         result = finish(finding, sandbox_id, f"codeaf exec (CLI) on {llm.host()}, attempt {attempt}",
                         error=None if collect_diff().strip() else out[-600:])
         if result["verified"]:
             break
+        feedback = result["verification_log"] or result.get("error") or "no patch produced"
     return result

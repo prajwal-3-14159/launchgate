@@ -122,7 +122,7 @@ def scan_repo(repo_url: str) -> ScanResult:
         raise
 
 
-def verify_fix(sandbox_id: str, diff: str, finding: dict) -> tuple[bool, str]:
+def _scanner_check(sandbox_id: str, diff: str, finding: dict) -> tuple[bool, str]:
     """Apply the patch inside the sandbox and re-run the scanner that raised the finding."""
     d = Daytona()
     sb = d.get(sandbox_id)
@@ -149,6 +149,27 @@ def verify_fix(sandbox_id: str, diff: str, finding: dict) -> tuple[bool, str]:
         if run(f"grep -rnF --exclude-dir=.git -- {shlex.quote(literal)} . | head -3").result.strip():
             return False, f"the secret literal is still present in the repository after the patch ({file})"
     return (not left), f"detect-secrets after patch: {len(left)} findings remain in {file} {left[:3]}"
+
+
+def _run_project_tests(run) -> tuple[bool, str]:
+    """The repo's own tests are the spec a patch has to meet. Returns (passed, summary)."""
+    if not run("git ls-files | grep -E '(^|/)test_[^/]*\\.py$' | head -1").result.strip():
+        return True, "project tests: none in the repo"
+    run(f"{VENV}/bin/pip install -q -r requirements.txt pytest 2>&1 | tail -2", 900)   # picks up changed pins
+    out = run(f"{VENV}/bin/python -m pytest -q -x -p no:cacheprovider > /tmp/lg_pytest.log 2>&1; "
+              "echo EXIT=$?; tail -n 12 /tmp/lg_pytest.log", 600).result
+    passed = "EXIT=0" in out
+    tail = " | ".join(l.strip() for l in out.splitlines() if l.strip() and not l.startswith("EXIT="))[-400:]
+    return passed, f"project tests: {'passed' if passed else 'FAILED'} ({tail})"
+
+
+def verify_fix(sandbox_id: str, diff: str, finding: dict) -> tuple[bool, str]:
+    """A patch counts only if the scanner is clean AND the project's own tests pass, in the sandbox."""
+    ok, log = _scanner_check(sandbox_id, diff, finding)
+    if not ok:
+        return False, log
+    passed, tests = _run_project_tests(_runner(Daytona().get(sandbox_id)))
+    return passed, f"{log}; {tests}"
 
 
 def delete_sandbox(sandbox_id: str) -> None:

@@ -17,6 +17,9 @@ from core.sandbox import scan_repo
 from core.schema import DOMAINS, FactSheet, ScanResult
 
 load_dotenv()
+if os.environ.get("LLM_BASE_URL"):                           # CodeAF reads its endpoint from the environment
+    os.environ.update({k: v for k, v in fixmod.codeaf_env().items() if k != "OPENROUTER_API_KEY"})
+    os.environ.pop("OPENROUTER_API_KEY", None)
 
 app = Agent(
     node_id="launchgate",
@@ -69,22 +72,29 @@ async def launch_check(repo_url: str, markets: list[str], context: dict | None =
 
 @app.reasoner()
 async def fix(repo_url: str, sandbox_id: str, finding: dict) -> dict:
-    """CodeAF (on the Nosana model) patches a local clone; Daytona re-scans to verify."""
-    await asyncio.to_thread(fixmod.prepare_workdir, repo_url)
-    via, error = f"app.harness → CodeAF on {llm.host()}", None
-    try:
-        result = await app.harness(
-            fixmod.fix_prompt(finding), model=llm.model(), env=fixmod.codeaf_env(),
-            cwd=str(fixmod.WORKDIR), max_turns=15)
-        if result.is_error:
-            error = result.error_message
-    except Exception as exc:
-        error = f"{type(exc).__name__}: {exc}"
-    if error and not fixmod.collect_diff().strip():           # fallback: CodeAF CLI directly
-        ok, out = await asyncio.to_thread(fixmod.run_codeaf_cli, fixmod.fix_prompt(finding))
-        via = f"codeaf exec (CLI fallback) on {llm.host()}"
-        error = None if ok else f"{error}; CLI: {out[-400:]}"
-    return await asyncio.to_thread(fixmod.finish, finding, sandbox_id, via, error)
+    """CodeAF (on the Nosana model) patches a local clone; Daytona re-scans and runs the repo's tests.
+    A rejected patch is retried once with the verifier's reason in the prompt."""
+    out, feedback = {}, None
+    for attempt in (1, 2):
+        await asyncio.to_thread(fixmod.prepare_workdir, repo_url)
+        prompt = fixmod.fix_prompt(finding, feedback)
+        via, error = f"app.harness → CodeAF on {llm.host()}, attempt {attempt}", None
+        try:
+            result = await app.harness(prompt, model=llm.model(), env=fixmod.codeaf_env(),
+                                       cwd=str(fixmod.WORKDIR), max_turns=15)
+            if result.is_error:
+                error = result.error_message
+        except Exception as exc:
+            error = f"{type(exc).__name__}: {exc}"
+        if error and not fixmod.collect_diff().strip():       # fallback: CodeAF CLI directly
+            ok, cli_out = await asyncio.to_thread(fixmod.run_codeaf_cli, prompt)
+            via = f"codeaf exec (CLI fallback) on {llm.host()}, attempt {attempt}"
+            error = None if ok else f"{error}; CLI: {cli_out[-400:]}"
+        out = await asyncio.to_thread(fixmod.finish, finding, sandbox_id, via, error)
+        if out["verified"]:
+            break
+        feedback = out["verification_log"] or out.get("error") or "no patch produced"
+    return out
 
 
 @app.reasoner()

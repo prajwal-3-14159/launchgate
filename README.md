@@ -58,9 +58,9 @@ The UI shows how many were dropped.
 | **Daytona** | Run live. Each check creates a sandbox, clones the repo and runs four open-source scanners in about 22 s. Sandbox ID is in the run log. |
 | **Tavily** | Run live. Rules for all 8 Japan/EU cells and 4 fact-sheet enrichments; responses cached in `cache/` with fetch time. |
 | **Nosana** | Run live. `scripts/nosana_deploy.py` deployed `cyankiwi/Qwen3-Coder-30B-A3B-Instruct-AWQ-4bit` on vLLM v0.10.2 (RTX 3090 market); cold start about 10 minutes. Every model call in the run log is served by the `*.node.k8s.prd.nos.ci` endpoint. |
-| **CodeAF** | Run live on the Nosana model through `CODEAF_BASE_URL` (`codeaf exec`, CLI path in `core/fix.py`). It patched the hard-coded key in `config.py` in 36–52 s; Daytona re-scan passed and the key literal is gone. |
-| **AgentField** | Code written (`app.py`, 7 reasoners) and imports cleanly. **Not run**: the control plane (`af`) was not installed on the build machine, so runs so far used `core/pipeline.py`, and CodeAF was called through its CLI rather than `app.harness`. |
-| Full run, Japan + EU | 8 cells in about 53 s: 11 blockers, 4 warnings on the demo repo. |
+| **CodeAF** | Run live on the Nosana model through `CODEAF_BASE_URL`, both through AgentField's `app.harness` (reasoner `fix`) and through `codeaf exec`. It patched the hard-coded key in `config.py` in 28–60 s. A patch counts as verified only if the Daytona re-scan is clean and the repo's own tests pass in the sandbox; a rejected patch is retried once with the verifier's reason in the prompt. |
+| **AgentField** | Run live with control plane v0.1.145. The `launchgate` node registers 7 reasoners; `launch_check` ran through `POST /api/v1/execute/async/launchgate.launch_check` in 52–56 s, fanning out 8 `market_agent` calls; `fix` ran CodeAF through `app.harness` in 32 s. Runs are visible in the dashboard at `/ui/`. |
+| Full run, Japan + EU | 8 cells in 52–56 s on the demo repo. Counts vary between runs for model-matched findings (9–11 blockers, 4–6 warnings); the scanner findings are the same every run. |
 | HTML report | Run live: three writer agents (summary, market brief, remediation plan), 7–19 s. |
 | Offline tests | 85 pass (`pytest tests`), model and Tavily replaced by fakes. |
 | Not implemented | Private repos, non-Python projects, PR creation, PDF export. US and India are selectable but untested. |
@@ -109,7 +109,8 @@ With AgentField:
 ```bash
 # install the control plane without the coding-agent skill and macOS tray
 curl -fsSL https://agentfield.ai/install.sh | bash -s -- --no-skill --no-tray
-AGENTFIELD_AGENT_CALL_TIMEOUT=600s af server --open=false   # dashboard: http://localhost:8080/ui/
+AGENTFIELD_AGENT_CALL_TIMEOUT=900s af server --port 8085 --open=false   # dashboard: http://localhost:8085/ui/
+PORT=8001 .venv/bin/python app.py   # set AGENTFIELD_URL=http://localhost:8085 in .env first
 .venv/bin/python app.py         # registers the "launchgate" node
 .venv/bin/streamlit run ui.py
 ```
@@ -124,6 +125,14 @@ Qwen2.5-Coder). Stop the deployment when done: `scripts/nosana_deploy.py stop <i
 What was checked against sponsor docs, and what could not be, is in `docs/VERIFIED.md`.
 
 Tests: `.venv/bin/python -m pytest tests -q`
+
+## Roadmap
+
+- Dependency-upgrade patches proven by the project's tests, with the release note that justifies each change cited (the idea behind our earlier concept, Kaizen).
+- Pull-request delivery instead of a diff.
+- More ecosystems (JavaScript/TypeScript first), private repos, more markets.
+
+Pitch: `pitch/pitch.html` (4 slides, self-contained).
 
 ## Limits
 
