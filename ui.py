@@ -19,6 +19,7 @@ MARKETS = {"JP": "Japan", "EU": "European Union", "US": "United States", "IN": "
 TESTED = ("JP", "EU")
 DOMAINS = ["security", "privacy", "licences", "trade"]
 AF_DEFAULT = "http://localhost:8080"
+PUBLIC = os.environ.get("LAUNCHGATE_PUBLIC") == "1"   # hosted demo: no patch step, no host settings
 PAGES = ["New check", "Results", "Report", "How it works", "About & limits"]
 
 st.set_page_config(page_title="LaunchGate", layout="wide")
@@ -216,10 +217,16 @@ with st.sidebar:
     st.caption("Release blockers by market, each tied to a line of code and a dated source.")
     page = st.radio("Go to", PAGES, key="nav", label_visibility="collapsed")
     st.divider()
-    st.markdown("**Run settings**")
-    use_af = st.toggle("Run through AgentField control plane", value=bool(os.environ.get("AGENTFIELD_URL")),
-                       help="Off: the same functions run through the plain asyncio pipeline.")
-    af_url = st.text_input("AgentField URL", os.environ.get("AGENTFIELD_URL", AF_DEFAULT), disabled=not use_af)
+    if PUBLIC:
+        # Public demo: visitors cannot point the server at another host.
+        use_af, af_url = bool(os.environ.get("AGENTFIELD_URL")), os.environ.get("AGENTFIELD_URL", AF_DEFAULT)
+        st.caption("Public demo. Checks run through the AgentField control plane. "
+                   "Patch generation is turned off here; see the repo to run it yourself.")
+    else:
+        st.markdown("**Run settings**")
+        use_af = st.toggle("Run through AgentField control plane", value=bool(os.environ.get("AGENTFIELD_URL")),
+                           help="Off: the same functions run through the plain asyncio pipeline.")
+        af_url = st.text_input("AgentField URL", os.environ.get("AGENTFIELD_URL", AF_DEFAULT), disabled=not use_af)
     st.divider()
     st.markdown("**Saved results**")
     if st.button("Load sample result", width="stretch", help="Hand-written example; no API calls"):
@@ -484,9 +491,10 @@ elif page == "Results":
                     st.markdown(f"**Fix:** {f['fix_summary']}")
 
                     if f["fix_type"] == "code":
-                        blocked = is_sample or ss.sandbox_deleted
+                        blocked = is_sample or ss.sandbox_deleted or PUBLIC
                         if st.button("Generate patch", key=f"fix_{fid}", disabled=blocked,
-                                     help="Not available on sample data or after the sandbox is deleted"
+                                     help=("Turned off on the public demo: the patch agent runs on the host machine"
+                                           if PUBLIC else "Not available on sample data or after the sandbox is deleted")
                                      if blocked else None):
                             with st.spinner("CodeAF is writing the patch. Daytona will re-scan it."):
                                 try:
@@ -561,7 +569,7 @@ elif page == "Results":
         st.json({k: v for k, v in res.get("facts", {}).items() if k != "enrichment"}, expanded=False)
 
     sandbox_id = scan.get("sandbox_id")
-    if sandbox_id and not is_sample:
+    if sandbox_id and not is_sample and not PUBLIC:
         if ss.sandbox_deleted:
             st.caption(f"Sandbox {sandbox_id} deleted.")
         elif st.button("Delete sandbox", help="Do this when you are done generating patches"):
